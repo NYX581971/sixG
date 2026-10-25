@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <title>彩虹六号 - 6G团队</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -101,9 +101,9 @@
         @keyframes glitchCover { 0% { opacity: 0; transform: translateX(0); } 20% { opacity: 1; transform: translateX(-10px); background: var(--neon-cyan); } 40% { opacity: 1; transform: translateX(10px); background: var(--neon-pink); } 60% { opacity: 1; transform: translateX(-5px); background: #000; } 80% { opacity: 1; transform: translateX(5px); background: #000; } 100% { opacity: 0; transform: translateX(0); } }
         .glitch-block { position: absolute; background: var(--neon-cyan); width: 100%; height: 20px; opacity: 0.8; }
 
-        .scroll-container { width: 100%; height: 100vh; overflow-y: scroll; scrollbar-width: none; -ms-overflow-style: none; position: relative; z-index: 2; }
+        .scroll-container { width: 100%; height: 100vh; height: 100dvh; overflow-y: scroll; scrollbar-width: none; -ms-overflow-style: none; position: relative; z-index: 2; }
         .scroll-container::-webkit-scrollbar { display: none; }
-        .section { width: 100%; height: 100vh; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .section { width: 100%; height: 100vh; height: 100dvh; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 
         .slide-down-arrow { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); color: #fff; opacity: 0.8; animation: floatDown 2s infinite ease-in-out; z-index: 10; transition: opacity 0.3s; }
         .slide-down-arrow:hover { opacity: 1; }
@@ -163,7 +163,7 @@
 
         .story-terminal { width: 100%; height: 100%; position: absolute; background: rgba(10, 10, 20, 0.85); border: 1px solid rgba(0, 240, 255, 0.4); box-shadow: 0 0 30px rgba(0, 240, 255, 0.15), inset 0 0 20px rgba(0, 240, 255, 0.05); clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); display: none; flex-direction: column; opacity: 0; transition: opacity 0.4s ease; }
         .terminal-header { padding: 10px 20px; background: rgba(0, 240, 255, 0.1); border-bottom: 1px solid rgba(0, 240, 255, 0.3); display: flex; justify-content: space-between; font-family: 'Orbitron', sans-serif; font-size: 0.8rem; color: var(--neon-cyan); letter-spacing: 2px; flex-shrink: 0; }
-        .story-viewport { flex: 1; position: relative; overflow-y: auto; padding: 20px 0; mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%); scrollbar-width: thin; scrollbar-color: var(--neon-cyan) rgba(0, 0, 0, 0.3); }
+        .story-viewport { flex: 1; position: relative; overflow-y: auto; padding: 20px 0; mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%); scrollbar-width: thin; scrollbar-color: var(--neon-cyan) rgba(0, 0, 0, 0.3); overscroll-behavior: contain; }
         .story-viewport::-webkit-scrollbar { width: 6px; }
         .story-viewport::-webkit-scrollbar-track { background: rgba(0, 240, 255, 0.05); border-radius: 3px; }
         .story-viewport::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 3px; box-shadow: 0 0 10px var(--neon-cyan); }
@@ -174,7 +174,7 @@
         .record-detail-panel { width: 100%; height: 100%; position: absolute; background: rgba(10, 10, 20, 0.88); border: 1px solid rgba(0, 240, 255, 0.4); box-shadow: 0 0 30px rgba(0, 240, 255, 0.15), inset 0 0 20px rgba(0, 240, 255, 0.05); clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); display: none; flex-direction: column; opacity: 0; transition: opacity 0.4s ease; }
         .record-detail-header { padding: 12px 24px; background: rgba(0, 240, 255, 0.1); border-bottom: 1px solid rgba(0, 240, 255, 0.3); display: flex; justify-content: space-between; align-items: center; gap: 14px; font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: var(--neon-cyan); letter-spacing: 2px; flex-shrink: 0; }
         .record-detail-header .hint { font-size: 0.68rem; opacity: 0.5; white-space: nowrap; letter-spacing: 1px; }
-        .record-detail-body { flex: 1; overflow-y: auto; padding: 22px 28px 34px; scrollbar-width: thin; scrollbar-color: var(--neon-cyan) rgba(0, 0, 0, 0.3); }
+        .record-detail-body { flex: 1; overflow-y: auto; padding: 22px 28px 34px; scrollbar-width: thin; scrollbar-color: var(--neon-cyan) rgba(0, 0, 0, 0.3); overscroll-behavior: contain; }
         .record-detail-body::-webkit-scrollbar { width: 6px; }
         .record-detail-body::-webkit-scrollbar-track { background: rgba(0, 240, 255, 0.05); border-radius: 3px; }
         .record-detail-body::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 3px; }
@@ -259,8 +259,8 @@
         /* ✨ 黑白背景倒影 (右上角) —— 比主图更大 */
         .modal-bg-reflection { 
             position: absolute; 
-            right: 4%; top: 2%; 
-            height: 130vh; width: 60vw; 
+            right: 2%; top: 0%; 
+            height: 140vh; width: 65vw; 
             object-fit: contain; 
             object-position: top right; 
             opacity: 0.12; 
@@ -344,13 +344,15 @@
         .panel-title { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Orbitron', sans-serif; font-size: 2rem; color: var(--neon-cyan); letter-spacing: 5px; transition: opacity 0.3s; opacity: 0.6; writing-mode: vertical-rl; text-orientation: upright; white-space: nowrap; pointer-events: none; }
         .split-panel:hover .panel-title { opacity: 1; text-shadow: 0 0 10px var(--neon-cyan); }
         .split-panel.active .panel-title { opacity: 0; pointer-events: none; }
-        .panel-content { width: 100%; height: 100%; padding: 25px; opacity: 0; pointer-events: none; transition: opacity 0.3s; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--neon-cyan) rgba(0, 0, 0, 0.3); }
+        .panel-content { width: 100%; height: 100%; padding: 25px; opacity: 0; pointer-events: none; transition: opacity 0.3s; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--neon-cyan) rgba(0, 0, 0, 0.3); overscroll-behavior: contain; }
         .panel-content::-webkit-scrollbar { width: 6px; }
         .panel-content::-webkit-scrollbar-track { background: rgba(0, 240, 255, 0.05); border-radius: 3px; }
         .panel-content::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 3px; }
         .split-panel.active .panel-content { opacity: 1; pointer-events: auto; }
-        .promo-video-container { width: 100%; border: 2px solid var(--neon-cyan); background: #000; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); }
-        .promo-video-container video { width: 100%; display: block; outline: none; }
+        .promo-video-container { width: 100%; border: 2px solid var(--neon-cyan); background: #000;  }
+        .promo-video-container video,
+        .promo-video-container iframe { width: 100%; display: block; outline: none; border: 0; }
+        .promo-video-container iframe { aspect-ratio: 16 / 9; }
         .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
         .photo-card { position: relative; border: 1px solid rgba(0, 240, 255, 0.3); overflow: hidden; background: #000; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); transition: all 0.3s ease; cursor: crosshair; }
         .photo-card:hover { transform: translateY(-5px); border-color: var(--neon-pink); box-shadow: 0 0 25px var(--neon-pink); z-index: 10; }
@@ -393,73 +395,233 @@
         .modal-content .btn-close { margin-top: 20px; background: transparent; border: none; color: #888; font-family: inherit; font-size: 1rem; cursor: pointer; }
         .modal-content .btn-close:hover { color: #fff; }
 
-        /* ================= 弹幕评论系统（样式保留，功能停用） ================= */
+        /* ================= 弹幕评论系统 ================= */
         #danmaku-layer { position: fixed; inset: 0; pointer-events: none; z-index: 500; overflow: hidden; transition: opacity 0.4s ease; }
         #danmaku-layer.hidden { opacity: 0; pointer-events: none; }
         .danmaku-item { position: absolute; white-space: nowrap; font-family: 'Rajdhani', "Microsoft YaHei", sans-serif; font-weight: 700; letter-spacing: 1px; padding: 5px 14px; border-radius: 4px; background: rgba(5, 5, 10, 0.42); backdrop-filter: blur(4px); text-shadow: 0 0 6px currentColor, 0 0 14px currentColor; border: 1px solid rgba(255, 255, 255, 0.08); will-change: transform; pointer-events: none; animation: danmakuMove linear forwards; }
         @keyframes danmakuMove { from { transform: translateX(0); } to { transform: translateX(calc(-100vw - 100%)); } }
 
+        #danmaku-trigger { position: fixed; right: 24px; bottom: 24px; z-index: 1000; padding: 12px 22px; background: rgba(5, 5, 15, 0.85); border: 2px solid var(--neon-cyan); color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 0.85rem; letter-spacing: 3px; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); transition: all 0.3s; box-shadow: 0 0 15px rgba(0, 240, 255, 0.3); display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        #danmaku-trigger:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 30px var(--neon-cyan); }
+        #danmaku-trigger svg { width: 16px; height: 16px; fill: currentColor; }
+
+        #danmaku-modal { position: fixed; inset: 0; z-index: 10000; display: none; justify-content: center; align-items: center; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); }
+        #danmaku-modal.active { display: flex; }
+        #danmaku-modal .modal-box { width: 90%; max-width: 460px; background: #0a0a12; border: 2px solid var(--neon-pink); padding: 30px 32px; box-shadow: 0 0 40px rgba(255, 0, 255, 0.4); clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px); animation: modalIn 0.3s ease-out; }
+        #danmaku-modal h3 { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; color: var(--neon-pink); text-shadow: 0 0 10px var(--neon-pink); letter-spacing: 3px; margin-bottom: 20px; text-align: center; }
+        #danmaku-modal input, #danmaku-modal textarea { width: 100%; padding: 12px 15px; margin-bottom: 12px; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(0, 240, 255, 0.4); color: #fff; font-family: inherit; font-size: 1rem; outline: none; transition: all 0.3s; }
+        #danmaku-modal input:focus, #danmaku-modal textarea:focus { border-color: var(--neon-cyan); box-shadow: 0 0 12px var(--neon-cyan); }
+        #danmaku-modal textarea { min-height: 80px; resize: vertical; max-height: 200px; }
+        #danmaku-modal .modal-actions { display: flex; gap: 10px; margin-top: 6px; }
+        #danmaku-modal .modal-actions button { flex: 1; padding: 11px; background: transparent; font-family: 'Orbitron', sans-serif; font-size: 0.85rem; letter-spacing: 2px; clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); transition: all 0.3s; cursor: pointer; }
+        #danmaku-modal .btn-send { border: 2px solid var(--neon-cyan); color: var(--neon-cyan); }
+        #danmaku-modal .btn-send:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); }
+        #danmaku-modal .btn-send:disabled { opacity: 0.5; }
+        #danmaku-modal .btn-cancel { border: 2px solid #555; color: #888; }
+        #danmaku-modal .btn-cancel:hover { border-color: #888; color: #fff; }
+
+        #danmaku-history-panel { position: fixed; top: 0; right: -400px; width: 380px; height: 100vh; height: 100dvh; background: rgba(8, 8, 16, 0.95); backdrop-filter: blur(12px); border-left: 2px solid var(--neon-cyan); box-shadow: -10px 0 30px rgba(0, 240, 255, 0.15); z-index: 19999; display: flex; flex-direction: column; transition: right 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+        #danmaku-history-panel.active { right: 0; }
+        .history-header { padding: 20px 24px; border-bottom: 1px solid rgba(0, 240, 255, 0.3); display: flex; justify-content: space-between; align-items: center; }
+        .history-header h3 { font-family: 'Orbitron', sans-serif; color: var(--neon-cyan); font-size: 1.1rem; letter-spacing: 2px; text-shadow: 0 0 10px var(--neon-cyan); }
+        .history-close { background: transparent; border: none; color: #888; font-size: 24px; cursor: pointer; transition: color 0.3s; }
+        .history-close:hover { color: #fff; }
+        .history-list { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; overscroll-behavior: contain; }
+        .history-list::-webkit-scrollbar { width: 6px; }
+        .history-list::-webkit-scrollbar-track { background: rgba(0, 240, 255, 0.05); }
+        .history-list::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 3px; }
+        .history-item { background: rgba(0, 240, 255, 0.05); border-left: 2px solid var(--neon-cyan); padding: 10px 14px; font-size: 0.95rem; line-height: 1.5; border-radius: 0 4px 4px 0; animation: historySlideIn 0.3s ease-out; }
+        @keyframes historySlideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        .history-item .h-name { color: var(--neon-pink); font-weight: bold; margin-right: 8px; }
+        .history-item .h-text { color: #ccc; }
+        .history-item .h-time { display: block; font-size: 0.75rem; color: #666; margin-top: 6px; text-align: right; }
+
         @media (max-width: 768px) {
-            #mouse-glow { display: none; } 
-            .title-first, .title-second { font-size: 3rem; letter-spacing: 8px; }
-            .hero-english { font-size: 1rem; letter-spacing: 2px; }
-            .side-nav { gap: 15px; right: 2%; }
-            .nav-item { font-size: 0.9rem; padding: 5px; }
-            .top-bar { top: 2%; right: 2%; gap: 10px; }
-            .control-btn { padding: 8px 12px; font-size: 0.8rem; }
-            
-            .agents-side-toggle { top: 6%; gap: 10px; }
-            .side-btn { padding: 8px 15px; font-size: 0.8rem; }
+            /* 基础 */
+            html, body { overflow-x: hidden; }
+            #mouse-glow { display: none; }
 
-            .agents-wall { flex-direction: row; overflow-x: auto; justify-content: flex-start; padding: 20px; width: 100vw; height: 50vh; gap: 15px; }
-            .agent-card { min-width: 140px; max-width: 140px; height: 100%; }
-            .agent-card-info { opacity: 1; transform: translateY(0); }
-            .agent-card-label { display: none; }
-            
-            .modal-info-panel { left: 5%; top: auto; bottom: 10%; width: 90%; transform: translateY(0); z-index: 10; background: rgba(10,10,20,0.8); padding: 15px; border-radius: 10px; }
-            .modal-real-name { font-size: 2.5rem; }
-            .modal-art { height: 60vh; width: 100vw; left: 50%; transform: translateX(-50%); bottom: 30%; }
-            .modal-bg-reflection { display: none; }
-            #modal-logo-canvas { width: 100vw; height: 100vw; opacity: 0.05; }
-            .voice-btn { bottom: 2%; right: 5%; font-size: 0.85rem; padding: 8px 15px; z-index: 20; }
+            /* 字体 */
+            .title-first, .title-second { font-size: clamp(2rem, 11vw, 3.4rem); letter-spacing: 6px; }
+            .hero-english { font-size: clamp(0.75rem, 3vw, 1rem); letter-spacing: 3px; }
 
-            .records-container { flex-direction: column; width: 90vw; height: 75vh; gap: 10px;}
-            .record-list { width: 100%; flex-direction: row; flex-wrap: wrap; gap: 15px; border-left: none; border-bottom: 2px solid rgba(0, 240, 255, 0.2); padding: 10px 0; justify-content: center; }
-            .record-item { font-size: 1rem; }
+            /* 侧边导航 */
+            .side-nav { gap: 14px; right: calc(12px + env(safe-area-inset-right)); }
+            .nav-item { font-size: 0.8rem; padding: 6px 4px 6px 18px; }
+            .nav-item::before { width: 8px; }
+            .nav-item.active::before { width: 18px; }
+
+            /* 顶部栏 */
+            .top-bar { top: calc(10px + env(safe-area-inset-top)); right: calc(10px + env(safe-area-inset-right)); gap: 8px; }
+            .control-btn { padding: 10px; min-width: 44px; min-height: 44px; justify-content: center; }
+            .control-btn span { display: none; }
+
+            /* RECORD 页面 */
+            .records-container {
+                flex-direction: column;
+                width: 92vw;
+                height: calc(100dvh - 120px);
+                gap: 10px;
+                justify-content: flex-start;
+                padding-top: 70px;
+            }
+            .record-list {
+                width: 100%;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                gap: 12px;
+                border-left: none;
+                border-bottom: 2px solid rgba(0, 240, 255, 0.2);
+                padding: 8px 0 10px;
+                justify-content: flex-start;
+                scrollbar-width: none;
+                -webkit-overflow-scrolling: touch;
+            }
+            .record-list::-webkit-scrollbar { display: none; }
+            .record-item { flex-shrink: 0; font-size: 0.9rem; padding: 6px 0; }
             .record-item::before { display: none; }
-            .content-display { width: 100%; height: 85%; }
-            .story-content { font-size: 0.95rem; padding: 0 15px 30px 15px; }
-            #record-hover-img { display: none; }
-
+            .content-display { width: 100%; flex: 1; min-height: 0; height: auto; }
+            .story-content { font-size: 0.92rem; padding: 0 14px 30px; line-height: 1.85; }
+            #record-hover-img { display: none !important; }
             .record-detail-body { padding: 14px 16px 26px; }
-            .rec-desc p { font-size: 0.95rem; line-height: 1.85; }
-            .rec-gallery { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+            .rec-desc p { font-size: 0.92rem; line-height: 1.8; }
+            .rec-gallery { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
             .rec-photo-caption { font-size: 0.7rem; padding: 5px; }
             .record-detail-header { padding: 9px 14px; font-size: 0.72rem; }
             .record-detail-header .hint { display: none; }
 
-            .more-split-container { flex-direction: column; width: 92vw; height: 70vh; gap: 10px; }
-            .split-panel { flex: 1; }
-            .split-panel.active { flex: 6; }
-            .panel-title { writing-mode: horizontal-tb; font-size: 1.5rem; }
-            .panel-content { padding: 10px; }
-            
+            /* AGENTS 页面 */
+            .agents-side-toggle { top: calc(70px + env(safe-area-inset-top)); gap: 10px; }
+            .side-btn { padding: 9px 16px; font-size: 0.78rem; min-height: 40px; }
+            .agents-wall {
+                flex-direction: row;
+                overflow-x: auto;
+                justify-content: flex-start;
+                padding: 20px 16px;
+                width: 100vw;
+                height: 52vh;
+                height: 52dvh;
+                gap: 14px;
+                margin-top: 0;
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            .agents-wall::-webkit-scrollbar { display: none; }
+            .agent-card { min-width: 136px; max-width: 136px; height: 100%; scroll-snap-align: center; }
+            .agent-card-info { opacity: 1; transform: translateY(0); padding: 14px 8px; }
+            .agent-card-info .real-name { font-size: 1rem; }
+            .agent-card-info .op-name { font-size: 0.78rem; }
+            .agent-card-label { display: none; }
+
+            /* 成员弹窗 */
+            .agent-modal-overlay { align-items: flex-end; }
+            .modal-art {
+                height: 48vh; height: 48dvh;
+                width: auto; max-width: 96vw;
+                left: 50%; transform: translateX(-50%);
+                bottom: auto; top: 3%;
+                object-position: top center;
+            }
+            .modal-bg-reflection { display: none; }
+            #modal-logo-canvas { width: 100vw; height: 100vw; opacity: 0.05; top: 25%; }
+            .modal-info-panel {
+                left: 0; right: 0; bottom: 0; top: auto;
+                width: 100%; max-width: none;
+                transform: none;
+                height: 52vh; height: 52dvh;
+                padding: 16px 20px calc(80px + env(safe-area-inset-bottom));
+                overflow-y: auto;
+                background: linear-gradient(to top, rgba(5,5,10,0.98) 55%, rgba(5,5,10,0.9) 80%, rgba(5,5,10,0.6) 100%);
+                border-radius: 16px 16px 0 0;
+                z-index: 3;
+                scrollbar-width: thin;
+            }
+            .modal-info-panel::-webkit-scrollbar { width: 4px; }
+            .modal-info-panel::-webkit-scrollbar-thumb { background: var(--accent-color, #00f0ff); border-radius: 2px; }
+            .modal-side-toggle { margin-bottom: 14px; }
+            .modal-real-name { font-size: clamp(1.8rem, 8vw, 2.4rem); letter-spacing: 2px; margin-bottom: 2px; }
+            .modal-op-name { font-size: 1rem; margin-bottom: 14px; }
+            .modal-details { font-size: 0.9rem; gap: 6px; padding-left: 12px; }
+            .modal-details .detail-label { width: 66px; }
+            .modal-desc { font-size: 0.92rem; margin-top: 12px; line-height: 1.65; }
+            .voice-btn { bottom: calc(16px + env(safe-area-inset-bottom)); right: 16px; padding: 10px 16px; font-size: 0.8rem; z-index: 10; }
+            .voice-btn svg { width: 16px; height: 16px; }
+            .modal-close-btn {
+                top: calc(10px + env(safe-area-inset-top)); right: 10px;
+                width: 44px; height: 44px; font-size: 30px;
+                background: rgba(0,0,0,0.5); border-radius: 50%;
+                z-index: 20;
+            }
+            .bg-text-top { font-size: 1.6rem; top: 3%; left: 4%; letter-spacing: 4px; }
+            .bg-text-vertical { display: none; }
+
+            /* MORE 页面：未激活面板固定 52px，可点击 */
+            .more-split-container {
+                flex-direction: column;
+                width: 92vw;
+                height: calc(100dvh - 120px);
+                gap: 10px;
+                padding-top: 70px;
+            }
+            .split-panel { flex: 0 0 52px; min-height: 52px; }
+            .split-panel.active { flex: 1 1 auto; min-height: 0; }
+            .split-panel:active:not(.active) { transform: scale(0.98); }
+            .panel-title { writing-mode: horizontal-tb; font-size: 1.05rem; letter-spacing: 3px; }
+            .panel-content { padding: 12px; overscroll-behavior: contain; }
             .photo-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
-            .photo-caption { font-size: 0.75rem; padding: 5px; }
-            
-            .game-title { font-size: 1.5rem; }
-            .game-grid { gap: 8px; }
-            .memory-card-back::after { font-size: 1.8rem; }
-            .memory-card-front { font-size: 2rem; }
+            .photo-caption { font-size: 0.72rem; padding: 5px; }
+            .promo-video-container { border-width: 1px; }
 
-            .lightbox-content { max-width: 95vw; padding: 5px; }
-            .lightbox-content img { max-height: 70vh; }
-            .lightbox-close { top: -10px; right: -10px; width: 30px; height: 30px; font-size: 18px; }
+            /* 游戏 */
+            .game-header { margin-bottom: 10px; }
+            .game-title { font-size: 1.15rem; }
+            .game-stats { font-size: 0.85rem; }
+            .game-grid { gap: 6px; }
+            .memory-card-front { font-size: 1.5rem; }
+            .memory-card-back::after { font-size: 1.4rem; }
+            .game-controls { margin-top: 10px; }
+            .game-btn { padding: 7px 16px; font-size: 0.78rem; }
 
+            /* 灯箱 */
+            .lightbox-content { max-width: 94vw; padding: 6px; }
+            .lightbox-content img { max-height: 68vh; }
+            .lightbox-close { top: -12px; right: -12px; width: 32px; height: 32px; font-size: 18px; }
+
+            /* 登录弹窗 */
+            .modal-overlay { padding: 20px; overflow-y: auto; }
+            .modal-content { width: 100%; max-width: 360px; padding: 26px 22px; margin: auto; }
+            .modal-content h3 { font-size: 1.4rem; margin-bottom: 18px; }
+            .modal-content input { font-size: 16px; padding: 12px; }
+            .modal-content .btn-submit { padding: 12px; font-size: 0.95rem; }
+
+            /* 防止内部滚动链传递到页面吸附 */
+            .story-viewport, .panel-content, .record-detail-body, .modal-info-panel, .history-list {
+                overscroll-behavior: contain;
+            }
+
+            /* 滚动吸附 */
+            .scroll-container {
+                scroll-snap-type: y mandatory;
+                -webkit-overflow-scrolling: touch;
+            }
+            .section {
+                scroll-snap-align: start;
+                scroll-snap-stop: always;
+            }
+
+            /* 版权 */
+            .copyright { bottom: calc(14px + env(safe-area-inset-bottom)) !important; font-size: 0.75rem; letter-spacing: 2px; }
+
+            /* 弹幕系统移动端 */
             .danmaku-item { font-size: 0.9rem !important; padding: 3px 10px; }
-            .top-bar { gap: 8px; }
-            .control-btn span { display: none; }
-            .control-btn { padding: 10px; }
+            #danmaku-trigger { right: calc(14px + env(safe-area-inset-right)); bottom: calc(14px + env(safe-area-inset-bottom)); padding: 10px 14px; font-size: 0.72rem; letter-spacing: 2px; min-height: 40px; }
+            #danmaku-trigger svg { width: 14px; height: 14px; }
+            #danmaku-history-panel { width: 100%; right: -100%; border-left: none; }
+            #danmaku-modal .modal-box { padding: 24px 22px; }
+            #danmaku-modal h3 { font-size: 1.15rem; }
+            #danmaku-modal input, #danmaku-modal textarea { font-size: 16px; }
         }
     </style>
 </head>
@@ -474,25 +636,23 @@
     <div id="mouse-glow"></div>
     <div id="transition-glitch"></div>
 
-    <!-- 弹幕层（空容器保留，避免 updateNav 取空） -->
+    <!-- 弹幕层 -->
     <div id="danmaku-layer"></div>
 
     <!-- 背景音乐与游戏音乐 -->
     <audio id="bg-music" loop>
-        <source src="pic\Cyberpunk_-_Energysound.mp3" type="audio/mpeg">
+        <source src="pic/Cyberpunk_-_Energysound.mp3" type="audio/mpeg">
     </audio>
     <audio id="game-music" loop>
-        <source src="pic\NINJASLIPDECOMBAT-12ko_-_med.mp3" type="audio/mpeg">
+        <source src="pic/NINJASLIPDECOMBAT-12ko_-_med.mp3" type="audio/mpeg">
     </audio>
 
     <!-- 右上角控制面板 -->
     <div class="top-bar">
-        <!-- 弹幕功能已停用
-        <button class="control-btn" id="danmaku-list-btn">
+        <button class="control-btn" id="danmaku-list-btn" title="查看弹幕记录">
             <svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
             <span>弹幕</span>
         </button>
-        -->
         <button class="control-btn" id="music-toggle">
             <svg id="music-icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
             <svg id="music-icon-pause" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
@@ -515,7 +675,7 @@
         
         <section class="section" id="section-hero">
             <div class="hero-bg-animation">
-                <video src="pic\ghostmary.mp4" autoplay loop muted playsinline></video>
+                <video src="pic/ghostmary.mp4" autoplay loop muted playsinline></video>
             </div>
             <h1 class="hero-title">
                 <span class="title-first">彩虹六号</span>
@@ -531,16 +691,16 @@
             <div class="records-container">
                 <div class="record-list">
                     <!-- RECORD 悬浮图片 -->
-                    <div class="record-item" data-record="rec-01" data-preview="pic\R6S_gp_Claymore.webp" onclick="toggleRecord(event, 'rec-01')">
+                    <div class="record-item" data-record="rec-01" data-preview="pic/R6S_gp_Claymore.webp" onclick="toggleRecord(event, 'rec-01')">
                         REC 01 // 初遇
                     </div>
-                    <div class="record-item" data-record="rec-02" data-preview="pic\R6S_gp_Proximity_Alarm.webp" onclick="toggleRecord(event, 'rec-02')">
+                    <div class="record-item" data-record="rec-02" data-preview="pic/R6S_gp_Proximity_Alarm.webp" onclick="toggleRecord(event, 'rec-02')">
                         REC 02 // 激战
                     </div>
-                    <div class="record-item" data-record="rec-03" data-preview="pic\R6S_gp_Smoke_Grenade.webp" onclick="toggleRecord(event, 'rec-03')">
+                    <div class="record-item" data-record="rec-03" data-preview="pic/R6S_gp_Smoke_Grenade.webp" onclick="toggleRecord(event, 'rec-03')">
                         REC 03 // 狂欢
                     </div>
-                    <div class="record-item" data-record="rec-04" data-preview="pic\R6S_gp_Bulletproof_camera.webp" onclick="toggleRecord(event, 'rec-04')">
+                    <div class="record-item" data-record="rec-04" data-preview="pic/R6S_gp_Bulletproof_camera.webp" onclick="toggleRecord(event, 'rec-04')">
                         REC 04 // 传说
                     </div>
                 </div>
@@ -611,7 +771,7 @@
             <!-- 全屏背景倒影 -->
             <img id="agents-bg-reflection" src="" alt="">
 
-            <!-- 顶部攻防切换按钮 (进攻在左，防守在右) -->
+            <!-- 顶部攻防切换按钮 -->
             <div class="agents-side-toggle">
                 <button class="agents-side-btn side-btn active" data-side="attack" onclick="switchAgentsSide('attack')">
                     进攻方 ATK
@@ -636,9 +796,15 @@
                 <div class="split-panel active" onclick="switchMorePanel(event, 0)" id="panel-video">
                     <div class="panel-title">/ VIDEO</div>
                     <div class="panel-content">
-                        <div class="promo-video-container">
-                            <video src="pic\fan_2.mp4" controls poster="pic/444.png" preload="metadata"></video>
-                        </div>
+                       <div class="promo-video-container">
+    <iframe
+        src="//player.bilibili.com/player.html?isOutside=true&aid=117500775827177&bvid=BV1PTHL6gEKz&cid=43041294228&p=1"
+        scrolling="no"
+        frameborder="no"
+        framespacing="0"
+        allowfullscreen="true">
+    </iframe>
+</div>
                     </div>
                 </div>
 
@@ -651,11 +817,11 @@
                                 <div class="photo-caption">我们团队看板娘~</div>
                             </div>
                             <div class="photo-card" onclick="openLightbox('pic/catsxu.jpg'); event.stopPropagation();">
-                                <img src="pic/喵.jpg" alt="照片2">
+                                <img src="pic/catsxu.jpg" alt="照片2">
                                 <div class="photo-caption">蒂蒂的猫猫~</div>
                             </div>
                             <div class="photo-card" onclick="openLightbox('pic/cat.jpg'); event.stopPropagation();">
-                                <img src="pic/猫.jpg" alt="照片3">
+                                <img src="pic/cat.jpg" alt="照片3">
                                 <div class="photo-caption">小黑球~</div>
                             </div>
                             <div class="photo-card" onclick="openLightbox('pic/round.png'); event.stopPropagation();">
@@ -695,22 +861,16 @@
 
     <!-- ================= 全屏成员个人档案弹窗 ================= -->
     <div class="agent-modal-overlay" id="agent-modal">
-        <!-- 特效背景文字 -->
         <div class="bg-text-top">R6 x sixG</div>
         <div class="bg-text-vertical">CHARACTER</div>
 
-        <!-- 居中赛博队标 -->
         <canvas id="modal-logo-canvas"></canvas>
 
-        <!-- 黑白背景倒影 -->
         <img src="" alt="" class="modal-bg-reflection" id="modal-bg-art">
-        <!-- 彩色前景大图 -->
         <img src="" alt="" class="modal-art" id="modal-art">
 
-        <!-- 关闭按钮 -->
         <button class="modal-close-btn" onclick="closeAgentModal()">×</button>
 
-        <!-- 左侧信息栏 -->
         <div class="modal-info-panel">
             <div class="modal-side-toggle">
                 <button class="modal-side-btn side-btn active" data-side="attack" onclick="switchModalSide('attack')">进攻方 ATK</button>
@@ -720,22 +880,16 @@
             <div class="modal-real-name" id="modal-real-name">真实姓名</div>
             <div class="modal-op-name" id="modal-op-name">常用干员</div>
 
-            <div class="modal-details" id="modal-details">
-                <!-- JS 动态生成属性 -->
-            </div>
+            <div class="modal-details" id="modal-details"></div>
             
-            <div class="modal-desc" id="modal-desc">
-                <!-- JS 动态生成简介 -->
-            </div>
+            <div class="modal-desc" id="modal-desc"></div>
         </div>
 
-        <!-- 语音播放按钮 -->
         <button class="voice-btn" id="voice-btn">
             <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
             <span>播放语音</span>
         </button>
         
-        <!-- 隐藏的音频标签 -->
         <audio id="voice-audio"></audio>
     </div>
 
@@ -759,12 +913,13 @@
         </div>
     </div>
 
-    <!-- 弹幕功能已停用：发送按钮 / 发送弹窗 / 历史面板
+    <!-- 弹幕发送按钮 -->
     <button id="danmaku-trigger">
         <svg viewBox="0 0 24 24"><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg>
         <span>发弹幕</span>
     </button>
 
+    <!-- 弹幕发送弹窗 -->
     <div id="danmaku-modal">
         <div class="modal-box">
             <h3>★ 发送弹幕 ★</h3>
@@ -777,6 +932,7 @@
         </div>
     </div>
 
+    <!-- 弹幕历史面板 -->
     <div id="danmaku-history-panel">
         <div class="history-header">
             <h3>弹幕记录</h3>
@@ -784,7 +940,6 @@
         </div>
         <div class="history-list" id="history-list"></div>
     </div>
-    -->
 
     <script>
         // ===================== 全局变量 =====================
@@ -796,6 +951,56 @@
         let currentIndex = 0;
         let isTransitioning = false;
         let bootActive = true;
+
+        // 移动端 / 触摸设备判断
+        const isMobile = matchMedia('(pointer: coarse)').matches || window.innerWidth <= 768;
+
+        /* 
+         * ===================== RECORD 页面详情数据 =====================
+         * REC 01 走故事终端（硬编码在 HTML 里）
+         * REC 02 / 03 / 04 用下面这份数据渲染右侧详情面板
+         */
+        const RECORD_DATA = {
+            'rec-02': {
+                title: 'REC 02 // 激战',
+                desc: `等待
+
+大家
+
+创作`,
+                images: [
+                    { src: 'pic/astro.jpg', caption: '我' },
+                    { src: 'pic/ghosta.jpg', caption: '们' },
+                    { src: 'pic/fuird.jpg', caption: '的' }
+                ]
+            },
+            'rec-03': {
+                title: 'REC 03 // 狂欢',
+                desc: `随便
+
+写啥
+
+都行`,
+                images: [
+                    { src: 'pic/fuzzle.jpg', caption: '故' },
+                    { src: 'pic/d4d.jpg', caption: '事' },
+                    { src: 'pic/naiwa.jpg', caption: '才' }
+                ]
+            },
+            'rec-04': {
+                title: 'REC 04 // 传说',
+                desc: `呜呜
+
+喵喵
+
+好累`,
+                images: [
+                    { src: 'pic/bomnana.jpg', caption: '刚' },
+                    { src: 'pic/dz.png', caption: '开' },
+                    { src: 'pic/yun.png', caption: '始' }
+                ]
+            }
+        };
 
         /* 
          * ===================== 核心数据区 =====================
@@ -952,7 +1157,7 @@
         ];
 
         // 状态管理
-        let currentAgentsSide = 'attack'; // 默认进攻方
+        let currentAgentsSide = 'attack';
         let currentModalMember = null;
         let currentModalSide = 'attack';
 
@@ -990,7 +1195,6 @@
         if (loginNameInput) loginNameInput.addEventListener('input', () => createKeyboardSplash(loginNameInput));
         if (loginPassInput) loginPassInput.addEventListener('input', () => createKeyboardSplash(loginPassInput));
 
-        // 弹幕输入框（已停用）
         const danmakuNameInput = document.getElementById('danmaku-name');
         const danmakuTextInput = document.getElementById('danmaku-text');
         if (danmakuNameInput) danmakuNameInput.addEventListener('input', () => createKeyboardSplash(danmakuNameInput));
@@ -1008,10 +1212,10 @@
         let lastHeartTime = 0;
         document.addEventListener('mousemove', (e) => {
             if (bootActive) return;
+            if (isMobile) return;
             const now = Date.now();
             if (now - lastHeartTime < 80) return;
             lastHeartTime = now;
-            if (window.innerWidth <= 768) return;
 
             const heart = document.createElement('span');
             heart.classList.add('mouse-heart');
@@ -1028,6 +1232,7 @@
 
         document.addEventListener('click', (e) => {
             if (bootActive) return;
+            if (isMobile) return;
             for (let i = 0; i < 24; i++) {
                 const particle = document.createElement('div');
                 particle.classList.add('firework-particle');
@@ -1094,24 +1299,19 @@
             else { bgMusic.play().then(() => { isPlaying = true; updateMusicUI(true); }).catch(() => alert("音乐播放失败。")); }
         });
 
-        // ===================== 5. 全新 AGENTS 页面逻辑 =====================
-
-        // 切换页面顶部攻防
+        // ===================== 5. AGENTS 页面逻辑 =====================
         function switchAgentsSide(side) {
             if (currentAgentsSide === side) return;
             currentAgentsSide = side;
 
-            // 更新按钮状态
             document.querySelectorAll('.agents-side-btn').forEach(btn => {
                 if (btn.dataset.side === side) btn.classList.add('active');
                 else btn.classList.remove('active');
             });
 
-            // 重新渲染卡片
             initAgentsWall();
         }
 
-        // 1. 初始化卡片墙
         function initAgentsWall() {
             const wall = document.getElementById('agents-wall');
             wall.innerHTML = '';
@@ -1130,7 +1330,6 @@
                     <div class="agent-card-label">${member.realName}</div>
                 `;
                 
-                // ✨ 卡片悬浮：显示全屏放大倒影
                 card.onmouseenter = () => {
                     const bgRef = document.getElementById('agents-bg-reflection');
                     bgRef.src = opData.bgArt;
@@ -1140,18 +1339,15 @@
                     document.getElementById('agents-bg-reflection').classList.remove('active');
                 };
 
-                // 绑定点击事件，打开弹窗
                 card.onclick = () => openAgentModal(member);
                 wall.appendChild(card);
             });
         }
 
-        // 2. 打开弹窗
         function openAgentModal(member) {
             currentModalMember = member;
             currentModalSide = currentAgentsSide; 
 
-            // 更新按钮状态
             document.querySelectorAll('.modal-side-btn').forEach(btn => {
                 if (btn.dataset.side === currentModalSide) btn.classList.add('active');
                 else btn.classList.remove('active');
@@ -1164,11 +1360,9 @@
             modal.classList.add('active');
         }
 
-        // 3. 关闭弹窗
         function closeAgentModal() {
             const modal = document.getElementById('agent-modal');
             modal.classList.remove('active');
-            // 停止语音并恢复 BGM
             const audio = document.getElementById('voice-audio');
             audio.pause();
             audio.currentTime = 0;
@@ -1178,7 +1372,6 @@
             }
         }
 
-        // 4. 切换弹窗内的阵营
         function switchModalSide(side) {
             if (!currentModalMember || currentModalSide === side) return;
             currentModalSide = side;
@@ -1191,24 +1384,19 @@
             updateModalContent();
         }
 
-        // 5. 更新弹窗 UI 数据
         function updateModalContent() {
             if (!currentModalMember) return;
             
             const opData = currentModalMember[currentModalSide];
 
-            // 主题色
             document.getElementById('agent-modal').style.setProperty('--accent-color', opData.color);
 
-            // 图片更新
             document.getElementById('modal-bg-art').src = opData.bgArt;
             document.getElementById('modal-art').src = opData.art;
 
-            // 文字更新
             document.getElementById('modal-real-name').textContent = currentModalMember.realName;
             document.getElementById('modal-op-name').textContent = opData.opName;
             
-            // 个人信息构建
             const detailsBox = document.getElementById('modal-details');
             let html = `
                 <div class="detail-row"><div class="detail-label">年龄</div><div class="detail-value">${currentModalMember.age || '未知'}</div></div>
@@ -1220,10 +1408,8 @@
             }
             detailsBox.innerHTML = html;
 
-            // 简介
             document.getElementById('modal-desc').textContent = currentModalMember.desc;
 
-            // 重置语音
             const audio = document.getElementById('voice-audio');
             if (currentModalMember.voice) {
                 audio.src = currentModalMember.voice;
@@ -1233,7 +1419,6 @@
             }
         }
 
-        // 6. 语音播放逻辑
         document.getElementById('voice-btn').onclick = () => {
             const audio = document.getElementById('voice-audio');
             if (!audio.src) {
@@ -1241,7 +1426,6 @@
                 return;
             }
             if (audio.paused) {
-                // 暂停 BGM
                 bgMusicWasPlayingBeforeVoice = !bgMusic.paused;
                 if (!bgMusic.paused) bgMusic.pause();
 
@@ -1255,7 +1439,6 @@
             } else {
                 audio.pause();
                 audio.currentTime = 0;
-                // 恢复 BGM
                 if (bgMusicWasPlayingBeforeVoice) {
                     bgMusic.play().catch(()=>{});
                     bgMusicWasPlayingBeforeVoice = false;
@@ -1263,7 +1446,6 @@
             }
         };
 
-        // 监听语音结束，恢复 BGM
         document.getElementById('voice-audio').addEventListener('ended', () => {
             if (bgMusicWasPlayingBeforeVoice) {
                 bgMusic.play().catch(()=>{});
@@ -1271,7 +1453,6 @@
             }
         });
 
-        // 7. 弹窗中间的赛博队标
         function drawModalLogo() {
             const mCanvas = document.getElementById('modal-logo-canvas');
             const mCtx = mCanvas.getContext('2d');
@@ -1289,7 +1470,6 @@
             mCtx.translate(cx, cy - 90 * scale);
             mCtx.scale(scale, scale);
 
-            // 盾牌
             mCtx.beginPath();
             mCtx.moveTo(0, -180);
             mCtx.lineTo(200, -80);
@@ -1306,7 +1486,6 @@
             mCtx.strokeStyle = 'rgba(0, 240, 255, 0.2)';
             mCtx.stroke();
 
-            // 彩虹圆弧
             const shieldCY = 50;
             const gradient = mCtx.createLinearGradient(-120, 0, 120, 0);
             gradient.addColorStop(0, 'rgba(255,0,51,0.3)');
@@ -1322,7 +1501,6 @@
             mCtx.strokeStyle = gradient;
             mCtx.stroke();
 
-            // 准星
             mCtx.beginPath();
             mCtx.moveTo(0, shieldCY - 120);
             mCtx.lineTo(0, shieldCY - 40);
@@ -1341,45 +1519,45 @@
             mCtx.restore();
         }
 
-        // 页面加载完成时初始化卡片墙
         window.addEventListener('load', () => {
             initAgentsWall();
         });
 
-        //  鼠标跟随效果夹在背景和文字之间 (RECORD 页面) 
+        //  RECORD 页面鼠标跟随图片
         const recordHoverImg = document.getElementById('record-hover-img');
 
-        document.querySelectorAll('.record-item').forEach(item => {
-            const previewSrc = item.dataset.preview;
-            if (!previewSrc || !recordHoverImg) return;
+        if (!isMobile) {
+            document.querySelectorAll('.record-item').forEach(item => {
+                const previewSrc = item.dataset.preview;
+                if (!previewSrc || !recordHoverImg) return;
 
-            item.addEventListener('mouseenter', () => {
-                recordHoverImg.src = previewSrc;
-                recordHoverImg.style.opacity = '1';
+                item.addEventListener('mouseenter', () => {
+                    recordHoverImg.src = previewSrc;
+                    recordHoverImg.style.opacity = '1';
+                });
+
+                item.addEventListener('mousemove', (e) => {
+                    const w = 250;
+                    let left = e.clientX - w / 2;
+                    let top = e.clientY + 25;
+
+                    if (left + w > window.innerWidth - 10) left = window.innerWidth - w - 10;
+                    if (left < 10) left = 10;
+
+                    recordHoverImg.style.left = left + 'px';
+                    recordHoverImg.style.top = top + 'px';
+                });
+
+                item.addEventListener('mouseleave', () => {
+                    recordHoverImg.style.opacity = '0';
+                });
             });
-
-            item.addEventListener('mousemove', (e) => {
-                const w = 250;
-                // 图片始终位于指针的视觉下方
-                let left = e.clientX - w / 2;
-                let top = e.clientY + 25;
-
-                // 纵向保持在指针下方
-                if (left + w > window.innerWidth - 10) left = window.innerWidth - w - 10;
-                if (left < 10) left = 10;
-
-                recordHoverImg.style.left = left + 'px';
-                recordHoverImg.style.top = top + 'px';
-            });
-
-            item.addEventListener('mouseleave', () => {
-                recordHoverImg.style.opacity = '0';
-            });
-        });
+        }
 
         // ===================== 6. 拖拽滑动 & 页面切换 =====================
         window.addEventListener('wheel', (e) => {
             if (bootActive) return;
+            if (isMobile) return;
             if (isTransitioning) return;
             if (document.getElementById('agent-modal').classList.contains('active')) return;
             if (e.target.closest('.story-viewport') || e.target.closest('.panel-content') || e.target.closest('.record-detail-body')) return;
@@ -1439,6 +1617,24 @@
             if (currentIndex === 3) startSlowEdgeParticles();
             else stopSlowEdgeParticles();
         }
+
+        // 移动端滚动吸附时同步 currentIndex
+        let scrollTicking = false;
+        scrollContainer.addEventListener('scroll', () => {
+            if (scrollTicking) return;
+            scrollTicking = true;
+            requestAnimationFrame(() => {
+                scrollTicking = false;
+                const vh = scrollContainer.clientHeight;
+                if (!vh) return;
+                const newIndex = Math.round(scrollContainer.scrollTop / vh);
+                const clamped = Math.max(0, Math.min(sections.length - 1, newIndex));
+                if (clamped !== currentIndex) {
+                    currentIndex = clamped;
+                    updateNav();
+                }
+            });
+        }, { passive: true });
 
         function triggerGlitchTransition(callback) {
             transitionGlitch.innerHTML = '';
@@ -1544,7 +1740,7 @@
         }
 
         function createEdgeBurst(rect) {
-            const particleCount = 60;
+            const particleCount = isMobile ? 20 : 60;
             const colors = ['#00f0ff', '#ff00ff', '#fcee0a', '#ffffff'];
 
             for (let i = 0; i < particleCount; i++) {
@@ -1577,6 +1773,7 @@
 
         let floatParticleTimer = null;
         function startSlowEdgeParticles() {
+            if (isMobile) return;
             if (floatParticleTimer) return;
             floatParticleTimer = setInterval(() => {
                 const activePanel = document.querySelector('.split-panel.active');
@@ -1794,7 +1991,7 @@
             const imgData = oCtx.getImageData(0, 0, offCanvas.width, offCanvas.height).data;
 
             particles = [];
-            const gap = 4;
+            const gap = isMobile ? 6 : 4;
 
             for (let y = 0; y < offCanvas.height; y += gap) {
                 for (let x = 0; x < offCanvas.width; x += gap) {
@@ -1945,7 +2142,12 @@
         }
 
         function renderRecordDetail(data) {
-            if (!data) return;
+            if (!data) {
+                recDetailTitle.textContent = 'NO DATA';
+                recDetailDesc.innerHTML = '<p>这条记录还没有录入内容。</p>';
+                recDetailGallery.innerHTML = '';
+                return;
+            }
 
             recDetailTitle.textContent = data.title || '';
 
@@ -2038,7 +2240,7 @@
             let enterGathering = false;
             let enterReady = false;
 
-            const T_STAMP = 2600;
+            const T_STAMP = isMobile ? 1800 : 2600;
             const BLESSINGS = [
                 '一起吃早午晚饭，一起看春夏秋冬',
                 '今天也是快乐的火花',
@@ -2066,7 +2268,7 @@
                     x: sealCenter.cx,
                     y: sealCenter.cy + (-90 + 50) * logoScale
                 };
-                crosshairRadius = Math.max(28, 35 * logoScale * 1.4);
+                crosshairRadius = isMobile ? Math.max(60, 35 * logoScale * 2) : Math.max(28, 35 * logoScale * 1.4);
 
                 const off = document.createElement('canvas');
                 off.width = sealSize;
@@ -2522,7 +2724,7 @@
             });
         })();
 
-        /* ===================== 15. 弹幕评论系统（已停用） =====================
+        // ===================== 15. 弹幕评论系统 =====================
         (function initDanmaku() {
             const SUPABASE_URL = 'https://wpwvvrflromejgeloiqf.supabase.co';
             const SUPABASE_ANON_KEY = 'sb_publishable_JDhs0N4pY0-p8wBVfzlRcw_2dGLRAxe';
@@ -2553,7 +2755,7 @@
                 '#00ff66', '#ff3366', '#b000ff', '#ff8800'
             ];
 
-            const MAX_ACTIVE = 25;
+            const MAX_ACTIVE = isMobile ? 12 : 25;
             let activeDanmaku = 0;
 
             let danmakuHistory = [];
@@ -2771,7 +2973,6 @@
 
             window.__spawnDanmaku = spawnDanmaku;
         })();
-        ===================== 弹幕评论系统结束 ===================== */
     </script>
 </body>
 </html>
