@@ -1,0 +1,2777 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>彩虹六号 - 6G团队</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ================= 全局十字准心光标 ================= */
+        *, *::before, *::after {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><line x1="16" y1="2" x2="16" y2="12" stroke="%2300f0ff" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="20" x2="16" y2="30" stroke="%2300f0ff" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="16" x2="12" y2="16" stroke="%2300f0ff" stroke-width="2" stroke-linecap="round"/><line x1="20" y1="16" x2="30" y2="16" stroke="%2300f0ff" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="16" r="2.5" fill="none" stroke="%2300f0ff" stroke-width="1.5"/></svg>') 16 16, crosshair;
+        }
+        input, textarea { cursor: text; }
+
+        /* ================= 基础与赛博变量 ================= */
+        :root {
+            --neon-cyan: #00f0ff;
+            --neon-pink: #ff00ff;
+            --neon-yellow: #fcee0a;
+            --bg-dark: #05050A;
+            --panel-bg: rgba(10, 10, 20, 0.7);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html {
+            width: 100%; height: 100%; overflow: hidden;
+            background-color: var(--bg-dark);
+            font-family: 'Rajdhani', "Microsoft YaHei", sans-serif;
+            color: #ffffff;
+        }
+
+        body::before {
+            content: '';
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-lights {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(0, 240, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 40%);
+        }
+
+        /* ================= 启动动画 ================= */
+        #boot-screen {
+            position: fixed; inset: 0; z-index: 200000;
+            background: #05050A;
+            overflow: hidden;
+            transition: opacity 0.9s ease, visibility 0s linear 0.9s;
+        }
+        #boot-screen.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+        #boot-screen::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px); background-size: 46px 46px; pointer-events: none; z-index: 0; }
+        #boot-screen::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.12) 0%, transparent 55%), radial-gradient(circle at 50% 50%, rgba(255, 0, 255, 0.08) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+        #boot-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+        #boot-flash { position: absolute; inset: 0; z-index: 10; background: #ffffff; opacity: 0; pointer-events: none; mix-blend-mode: screen; }
+        #boot-flash.flash { animation: bootFlash 0.24s ease-out forwards; }
+        @keyframes bootFlash { 0% { opacity: 0.95; } 100% { opacity: 0; } }
+        #boot-screen.shaking { animation: bootShake 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+        @keyframes bootShake { 10%, 90% { transform: translate3d(-8px, 5px, 0); } 20%, 80% { transform: translate3d(14px, -9px, 0); } 30%, 50%, 70% { transform: translate3d(-20px, 9px, 0); } 40%, 60% { transform: translate3d(20px, -7px, 0); } }
+
+        /* ================= 鼠标特效 & 粒子 ================= */
+        .mouse-heart { position: fixed; pointer-events: none; z-index: 99997; font-size: 20px; line-height: 1; transform: translate(-50%, -50%); animation: floatHeart 1.5s ease-out forwards; text-shadow: 0 0 10px currentColor; }
+        @keyframes floatHeart { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; } 50% { transform: translate(calc(-50% + var(--dx)), calc(-50% - 60px)) scale(1) rotate(var(--rot)); opacity: 0.8; } 100% { transform: translate(calc(-50% + var(--dx) * 1.5), calc(-50% - 120px)) scale(1.2) rotate(var(--rot) * 2); opacity: 0; } }
+
+        .keyboard-heart { position: fixed; pointer-events: none; z-index: 99998; font-size: 18px; line-height: 1; transform: translate(-50%, -50%); animation: splashHeart 1s ease-out forwards; text-shadow: 0 0 8px currentColor; }
+        @keyframes splashHeart { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; } 50% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(1.2) rotate(var(--rot)); opacity: 0.9; } 100% { transform: translate(calc(-50% + var(--tx) * 1.5), calc(-50% + var(--ty) * 1.5)) scale(0.8) rotate(var(--rot) * 2); opacity: 0; } }
+
+        .firework-particle { position: fixed; border-radius: 50%; pointer-events: none; z-index: 99999; transform: translate(-50%, -50%); animation: fireworkExplode 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        @keyframes fireworkExplode { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0); opacity: 0; } }
+
+        .cyber-edge-particle { position: fixed; pointer-events: none; z-index: 99999; transform: translate(-50%, -50%); animation: cyberEdgeBurst 1s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; }
+        @keyframes cyberEdgeBurst { 0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 1; } 100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) rotate(360deg) scale(0); opacity: 0; } }
+
+        .cyber-edge-float { position: fixed; pointer-events: none; z-index: 99998; transform: translate(-50%, -50%); animation: cyberEdgeFloat 4s linear forwards; }
+        @keyframes cyberEdgeFloat { 0% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.9; } 50% { opacity: 0.6; } 100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0); opacity: 0; } }
+
+        /* ================= 照片灯箱 ================= */
+        .lightbox-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px); display: none; justify-content: center; align-items: center; z-index: 150000; opacity: 0; transition: opacity 0.3s ease; }
+        .lightbox-overlay.active { display: flex; opacity: 1; }
+        .lightbox-content { position: relative; max-width: 85vw; max-height: 85vh; border: 2px solid var(--neon-cyan); box-shadow: 0 0 30px var(--neon-cyan), inset 0 0 30px rgba(0,240,255,0.2); clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); background: #000; padding: 10px; transform: scale(0.9); transition: transform 0.3s ease; }
+        .lightbox-overlay.active .lightbox-content { transform: scale(1); }
+        .lightbox-content img { max-width: 100%; max-height: 80vh; object-fit: contain; display: block; }
+        .lightbox-close { position: absolute; top: -15px; right: -15px; width: 40px; height: 40px; background: #000; border: 2px solid var(--neon-pink); color: var(--neon-pink); font-size: 24px; font-weight: bold; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 15px var(--neon-pink); transition: all 0.3s; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
+        .lightbox-close:hover { background: var(--neon-pink); color: #000; transform: rotate(90deg); }
+
+        #mouse-glow { position: fixed; width: 300px; height: 300px; background: radial-gradient(circle, rgba(0, 240, 255, 0.2) 0%, rgba(255, 0, 255, 0.05) 50%, transparent 70%); border-radius: 50%; filter: blur(20px); pointer-events: none; left: -300px; top: -300px; z-index: 5000; transition: transform 0.1s ease-out; }
+
+        #transition-glitch { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9000; display: none; background: #000; opacity: 0; }
+        #transition-glitch.active { display: block; animation: glitchCover 1s steps(2, end) forwards; }
+        @keyframes glitchCover { 0% { opacity: 0; transform: translateX(0); } 20% { opacity: 1; transform: translateX(-10px); background: var(--neon-cyan); } 40% { opacity: 1; transform: translateX(10px); background: var(--neon-pink); } 60% { opacity: 1; transform: translateX(-5px); background: #000; } 80% { opacity: 1; transform: translateX(5px); background: #000; } 100% { opacity: 0; transform: translateX(0); } }
+        .glitch-block { position: absolute; background: var(--neon-cyan); width: 100%; height: 20px; opacity: 0.8; }
+
+        .scroll-container { width: 100%; height: 100vh; overflow-y: scroll; scrollbar-width: none; -ms-overflow-style: none; position: relative; z-index: 2; }
+        .scroll-container::-webkit-scrollbar { display: none; }
+        .section { width: 100%; height: 100vh; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+
+        .slide-down-arrow { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); color: #fff; opacity: 0.8; animation: floatDown 2s infinite ease-in-out; z-index: 10; transition: opacity 0.3s; }
+        .slide-down-arrow:hover { opacity: 1; }
+        .slide-down-arrow svg { width: 30px; height: 30px; fill: #fff; filter: drop-shadow(0 0 8px rgba(255,255,255,0.6)); }
+        @keyframes floatDown { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, 12px); } }
+        #section-gengduo .slide-down-arrow { display: none; }
+
+        .side-nav { position: fixed; right: 3%; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 30px; z-index: 100; }
+        .nav-item { font-family: 'Orbitron', sans-serif; font-size: 1rem; color: rgba(255, 255, 255, 0.5); transition: all 0.3s ease; text-align: right; position: relative; padding: 5px 15px 5px 30px; }
+        .nav-item::before { content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 10px; height: 2px; background: rgba(255, 255, 255, 0.3); transition: all 0.3s; }
+        .nav-item:hover, .nav-item.active { color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan); }
+        .nav-item.active::before { width: 25px; background: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); }
+
+        .hero-title { position: relative; z-index: 2; font-family: 'Orbitron', sans-serif; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .hero-title::before, .hero-title::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+        .hero-title::before { background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent); clip-path: polygon(0 20%, 100% 20%, 100% 25%, 0 25%, 0 60%, 100% 60%, 100% 65%, 0 65%); filter: blur(1px); animation: electricArcLeft 0.15s infinite alternate; opacity: 0.8; }
+        .hero-title::after { background: linear-gradient(90deg, transparent, var(--neon-pink), transparent); clip-path: polygon(0 40%, 100% 40%, 100% 45%, 0 45%, 0 80%, 100% 80%, 100% 85%, 0 85%); filter: blur(1px); animation: electricArcRight 0.2s infinite alternate; opacity: 0.6; }
+        @keyframes electricArcLeft { 0% { transform: translateX(0); opacity: 0.3; } 50% { transform: translateX(-10px) scaleX(1.1); opacity: 0.9; } 100% { transform: translateX(10px) scaleX(0.9); opacity: 0.5; } }
+        @keyframes electricArcRight { 0% { transform: translateX(0); opacity: 0.2; } 50% { transform: translateX(15px) scaleX(1.2); opacity: 0.8; } 100% { transform: translateX(-5px) scaleX(0.8); opacity: 0.4; } }
+        .title-first, .title-second { position: relative; z-index: 2; font-size: 6rem; font-weight: 900; letter-spacing: 15px; color: #fff; }
+        .title-first { text-shadow: 0 0 10px var(--neon-pink), 0 0 30px var(--neon-pink); transform: translateX(-8vw); margin-bottom: 10px; animation: electricFlicker 0.1s infinite alternate; }
+        .title-second { text-shadow: 0 0 10px var(--neon-cyan), 0 0 30px var(--neon-cyan); transform: translateX(8vw); margin-top: 15px; animation: electricFlicker 0.15s infinite alternate; }
+        @keyframes electricFlicker { 0% { opacity: 0.9; } 50% { opacity: 1; } 100% { opacity: 0.85; } }
+        .hero-english { position: relative; z-index: 2; font-family: 'Orbitron', sans-serif; font-size: 1.2rem; letter-spacing: 8px; color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow); margin: 0; animation: signalGlitch 1s infinite alternate; }
+        @keyframes signalGlitch { 0% { opacity: 0.6; transform: translateX(0); } 90% { opacity: 1; transform: translateX(0); } 95% { opacity: 0.8; transform: translateX(5px); } 100% { opacity: 1; transform: translateX(-5px); } }
+        .hero-bg-animation { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 1; pointer-events: none; mix-blend-mode: screen; opacity: 0.8; }
+        .hero-bg-animation video, .hero-bg-animation img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* ================= RECORD 页面 ================= */
+        .records-container { display: flex; width: 85vw; max-width: 1300px; height: 75vh; justify-content: space-between; align-items: center; z-index: 5; }
+        .record-list { display: flex; flex-direction: column; gap: 30px; width: 25%; border-left: 2px solid rgba(0, 240, 255, 0.2); padding-left: 30px; }
+        .record-item { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: rgba(255,255,255,0.4); transition: all 0.4s ease; position: relative; letter-spacing: 2px; padding: 10px 0; }
+        .record-item::before { content: ''; position: absolute; left: -38px; top: 50%; transform: translateY(-50%); width: 10px; height: 10px; background: var(--bg-dark); border: 2px solid rgba(0, 240, 255, 0.5); border-radius: 50%; transition: all 0.4s ease; }
+        .record-item:hover, .record-item.active { color: var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan); transform: translateX(10px); }
+        .record-item.active::before { background: var(--neon-cyan); box-shadow: 0 0 15px var(--neon-cyan); border-color: #fff; }
+        
+        /* ✨ RECORD 悬浮跟随图片特效（夹在背景和文字之间，无边框） */
+        #record-hover-img {
+            position: fixed;
+            width: 250px;
+            height: auto;
+            border: none;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+            object-fit: cover;
+            opacity: 0;
+            pointer-events: none;
+            /* 层级低于 scroll-container (z-index:2)，高于背景 (z-index:0)，从而夹在背景和内容之间 */
+            z-index: 1;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: opacity 0.2s ease;
+            top: -999px; left: -999px;
+        }
+
+        .content-display { width: 70%; height: 100%; position: relative; display: flex; justify-content: center; align-items: center; }
+        .canvas-container { width: 100%; height: 100%; position: absolute; display: flex; justify-content: center; align-items: center; transition: opacity 0.4s ease; }
+        #logo-canvas { width: 100%; height: 100%; filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.3)); }
+
+        .story-terminal { width: 100%; height: 100%; position: absolute; background: rgba(10, 10, 20, 0.85); border: 1px solid rgba(0, 240, 255, 0.4); box-shadow: 0 0 30px rgba(0, 240, 255, 0.15), inset 0 0 20px rgba(0, 240, 255, 0.05); clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); display: none; flex-direction: column; opacity: 0; transition: opacity 0.4s ease; }
+        .terminal-header { padding: 10px 20px; background: rgba(0, 240, 255, 0.1); border-bottom: 1px solid rgba(0, 240, 255, 0.3); display: flex; justify-content: space-between; font-family: 'Orbitron', sans-serif; font-size: 0.8rem; color: var(--neon-cyan); letter-spacing: 2px; flex-shrink: 0; }
+        .story-viewport { flex: 1; position: relative; overflow-y: auto; padding: 20px 0; mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%); scrollbar-width: thin; scrollbar-color: var(--neon-cyan) rgba(0, 0, 0, 0.3); }
+        .story-viewport::-webkit-scrollbar { width: 6px; }
+        .story-viewport::-webkit-scrollbar-track { background: rgba(0, 240, 255, 0.05); border-radius: 3px; }
+        .story-viewport::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 3px; box-shadow: 0 0 10px var(--neon-cyan); }
+        .story-content { padding: 0 30px 40px 30px; font-size: 1.1rem; line-height: 2; color: #b0c4de; text-align: justify; }
+        .story-content p { margin-bottom: 1.5em; text-indent: 2em; }
+        .story-content strong { color: var(--neon-cyan); font-weight: 700; text-shadow: 0 0 8px rgba(0,240,255,0.5); }
+
+        .record-detail-panel { width: 100%; height: 100%; position: absolute; background: rgba(10, 10, 20, 0.88); border: 1px solid rgba(0, 240, 255, 0.4); box-shadow: 0 0 30px rgba(0, 240, 255, 0.15), inset 0 0 20px rgba(0, 240, 255, 0.05); clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); display: none; flex-direction: column; opacity: 0; transition: opacity 0.4s ease; }
+        .record-detail-header { padding: 12px 24px; background: rgba(0, 240, 255, 0.1); border-bottom: 1px solid rgba(0, 240, 255, 0.3); display: flex; justify-content: space-between; align-items: center; gap: 14px; font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: var(--neon-cyan); letter-spacing: 2px; flex-shrink: 0; }
+        .record-detail-header .hint { font-size: 0.68rem; opacity: 0.5; white-space: nowrap; letter-spacing: 1px; }
+        .record-detail-body { flex: 1; overflow-y: auto; padding: 22px 28px 34px; scrollbar-width: thin; scrollbar-color: var(--neon-cyan) rgba(0, 0, 0, 0.3); }
+        .record-detail-body::-webkit-scrollbar { width: 6px; }
+        .record-detail-body::-webkit-scrollbar-track { background: rgba(0, 240, 255, 0.05); border-radius: 3px; }
+        .record-detail-body::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 3px; }
+        .rec-desc p { font-size: 1.05rem; line-height: 1.95; color: #b0c4de; text-indent: 2em; margin-bottom: 1.1em; text-align: justify; }
+        .rec-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; margin-top: 10px; }
+        .rec-photo-card { position: relative; background: #000; border: 1px solid rgba(0, 240, 255, 0.3); clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); overflow: hidden; transition: all 0.3s ease; }
+        .rec-photo-card:hover { border-color: var(--neon-pink); box-shadow: 0 0 22px var(--neon-pink); transform: translateY(-4px); }
+        .rec-photo-card img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; filter: grayscale(35%) contrast(1.12); transition: all 0.3s ease; }
+        .rec-photo-card:hover img { filter: grayscale(0%) contrast(1.05); transform: scale(1.05); }
+        .rec-photo-caption { padding: 8px 10px; font-size: 0.82rem; color: #9fb6cc; background: rgba(0, 240, 255, 0.06); border-top: 1px solid rgba(0, 240, 255, 0.15); text-align: center; letter-spacing: 1px; }
+
+
+        /* ================= 全新的 AGENTS 页面 ================= */
+        #section-shaoxia { display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden; }
+        
+        /* ✨ 全屏背景倒影 */
+        #agents-bg-reflection {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(1.1);
+            height: 90vh; width: 90vw;
+            object-fit: contain;
+            opacity: 0;
+            filter: grayscale(100%) contrast(1.5) brightness(0.4);
+            mix-blend-mode: screen;
+            pointer-events: none;
+            z-index: 0;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            mask-image: radial-gradient(circle, black 30%, transparent 70%);
+            -webkit-mask-image: radial-gradient(circle, black 30%, transparent 70%);
+        }
+        #agents-bg-reflection.active {
+            opacity: 0.3;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* 顶部攻防切换按钮 (进攻在左，防守在右) */
+        .agents-side-toggle {
+            position: absolute;
+            top: 8%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex; gap: 20px; z-index: 20;
+        }
+        
+        .side-btn {
+            font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: bold;
+            padding: 8px 25px; background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.5);
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: all 0.3s; cursor: pointer; position: relative;
+        }
+        .side-btn:hover { color: #fff; border-color: #fff; transform: scale(1.05); }
+        
+        .side-btn.active[data-side="defense"] { border-color: var(--neon-cyan); color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); text-shadow: 0 0 5px var(--neon-cyan); }
+        .side-btn.active[data-side="attack"] { border-color: var(--neon-pink); color: var(--neon-pink); box-shadow: 0 0 15px rgba(255, 0, 255, 0.4); text-shadow: 0 0 5px var(--neon-pink); }
+
+        .agents-wall { display: flex; gap: 20px; width: 90vw; max-width: 1400px; height: 60vh; align-items: center; justify-content: center; perspective: 1000px; z-index: 10; margin-top: 5vh; }
+        
+        .agent-card { flex: 1; height: 100%; max-width: 180px; position: relative; background: #000; border: 2px solid rgba(0, 240, 255, 0.3); clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden; cursor: pointer; }
+        .agent-card:hover { transform: translateY(-15px) scale(1.05); border-color: var(--neon-cyan); box-shadow: 0 0 30px rgba(0, 240, 255, 0.4); z-index: 2; }
+        
+        .agent-card-bg { position: absolute; inset: 0; background-size: cover; background-position: center top; filter: grayscale(100%) brightness(0.4) contrast(1.2); transition: all 0.4s; }
+        .agent-card:hover .agent-card-bg { filter: grayscale(0%) brightness(0.8) contrast(1.1); }
+
+        .agent-card-info { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px 10px; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); text-align: center; transform: translateY(20px); transition: all 0.4s; opacity: 0; z-index: 2; }
+        .agent-card:hover .agent-card-info { transform: translateY(0); opacity: 1; }
+        .agent-card-info .real-name { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; font-weight: bold; color: #fff; letter-spacing: 2px; }
+        .agent-card-info .op-name { font-size: 0.9rem; color: var(--neon-cyan); margin-top: 5px; letter-spacing: 1px; }
+        
+        .agent-card-label { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; font-family: 'Orbitron', sans-serif; font-size: 1rem; color: rgba(255,255,255,0.6); transition: all 0.3s; z-index: 2; }
+        .agent-card:hover .agent-card-label { opacity: 0; }
+
+
+        /* ================= 全屏档案弹窗 ================= */
+        .agent-modal-overlay { position: fixed; inset: 0; background: rgba(5, 5, 10, 0.95); backdrop-filter: blur(10px); z-index: 100000; display: none; opacity: 0; transition: opacity 0.4s ease; overflow: hidden; }
+        .agent-modal-overlay.active { display: flex; opacity: 1; }
+
+        /* 居中赛博队标 */
+        #modal-logo-canvas { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80vh; height: 80vh; opacity: 0.15; z-index: 0; pointer-events: none; filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.5)); }
+
+        /* ✨ 黑白背景倒影 (右上角) —— 比主图更大 */
+        .modal-bg-reflection { 
+            position: absolute; 
+            right: 4%; top: 2%; 
+            height: 130vh; width: 60vw; 
+            object-fit: contain; 
+            object-position: top right; 
+            opacity: 0.12; 
+            filter: grayscale(100%) contrast(1.8) brightness(1.2); 
+            z-index: 0; pointer-events: none; 
+            mix-blend-mode: screen; 
+            mask-image: linear-gradient(to bottom left, black 25%, transparent 85%); 
+            -webkit-mask-image: linear-gradient(to bottom left, black 25%, transparent 85%); 
+        }
+
+        /* ✨ 前景大立绘 (居中偏右) */
+        .modal-art { 
+            position: absolute; 
+            left: 52%; 
+            bottom: 0; 
+            height: 95vh; 
+            width: auto; 
+            max-width: 60vw;
+            object-fit: contain; 
+            object-position: bottom center; 
+            z-index: 1; 
+            pointer-events: none; 
+            filter: drop-shadow(0 0 50px rgba(0,0,0,0.8)); 
+            transition: all 0.5s ease; 
+        }
+
+        /* 左侧信息面板 */
+        .modal-info-panel { position: absolute; left: 8%; top: 50%; transform: translateY(-50%); width: 35%; max-width: 500px; z-index: 2; display: flex; flex-direction: column; }
+        
+        .modal-side-toggle { display: flex; gap: 15px; margin-bottom: 30px; }
+
+        .modal-real-name { font-family: 'Orbitron', sans-serif; font-size: 3.5rem; font-weight: 900; color: #fff; letter-spacing: 4px; line-height: 1.1; margin-bottom: 5px; text-shadow: 0 0 20px var(--accent-color, #00f0ff); }
+        .modal-op-name { font-size: 1.5rem; color: var(--accent-color, #00f0ff); letter-spacing: 2px; margin-bottom: 30px; font-weight: bold; }
+
+        .modal-details { border-left: 2px solid rgba(255,255,255,0.2); padding-left: 20px; display: flex; flex-direction: column; gap: 12px; font-size: 1.1rem; color: #ccc; line-height: 1.6; }
+        .modal-details .detail-row { display: flex; }
+        .modal-details .detail-label { color: rgba(255,255,255,0.5); width: 80px; flex-shrink: 0; }
+        .modal-details .detail-value { color: #fff; }
+        .modal-desc { margin-top: 20px; font-size: 1.15rem; color: #b0c4de; text-align: justify; line-height: 1.8; }
+
+        /* 右下角语音按钮 */
+        .voice-btn { position: absolute; right: 8%; bottom: 8%; z-index: 10; display: flex; align-items: center; gap: 10px; padding: 12px 25px; background: rgba(0, 0, 0, 0.7); border: 2px solid var(--accent-color, #00f0ff); color: var(--accent-color, #00f0ff); font-family: 'Orbitron', sans-serif; font-size: 1rem; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); transition: all 0.3s; box-shadow: 0 0 15px rgba(0,0,0,0.5); cursor: pointer; }
+        .voice-btn:hover { background: var(--accent-color, #00f0ff); color: #000; box-shadow: 0 0 25px var(--accent-color, #00f0ff); }
+        .voice-btn svg { width: 20px; height: 20px; fill: currentColor; }
+
+        /* 关闭按钮 */
+        .modal-close-btn { position: absolute; top: 5%; right: 5%; width: 50px; height: 50px; z-index: 20; background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 40px; cursor: pointer; transition: all 0.3s; display: flex; justify-content: center; align-items: center; }
+        .modal-close-btn:hover { color: #fff; transform: rotate(90deg) scale(1.2); }
+
+        /* 背景文字 */
+        .bg-text-top { position: absolute; top: 5%; left: 8%; font-family: 'Orbitron', sans-serif; font-size: 4rem; font-weight: 900; color: rgba(255,255,255,0.03); letter-spacing: 10px; pointer-events: none; z-index: 0; white-space: nowrap; }
+        .bg-text-vertical { position: absolute; top: 15%; right: 3%; font-family: 'Orbitron', sans-serif; font-size: 5rem; font-weight: 900; color: rgba(255,255,255,0.03); letter-spacing: 15px; writing-mode: vertical-rl; text-orientation: upright; pointer-events: none; z-index: 0; }
+
+        /* ================= 其他 UI ================= */
+        .more-split-container { display: flex; width: 80vw; max-width: 1100px; height: 75vh; gap: 20px; z-index: 5; }
+        /* ✨ MORE 面板视觉风格与 AGENTS 卡片同款 */
+        .split-panel {
+            position: relative;
+            flex: 1;
+            background: #000;
+            border: 2px solid rgba(0, 240, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+            transition: flex 0.6s cubic-bezier(0.25, 1, 0.5, 1), background 0.3s, border-color 0.3s, box-shadow 0.3s, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .split-panel:hover:not(.active) {
+            transform: translateY(-12px) scale(1.03);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
+            z-index: 2;
+        }
+        .split-panel.active {
+            flex: 8;
+            background: rgba(10, 10, 20, 0.95);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.4), inset 0 0 20px rgba(0, 240, 255, 0.12);
+            cursor: default;
+        }
+        .panel-title { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Orbitron', sans-serif; font-size: 2rem; color: var(--neon-cyan); letter-spacing: 5px; transition: opacity 0.3s; opacity: 0.6; writing-mode: vertical-rl; text-orientation: upright; white-space: nowrap; pointer-events: none; }
+        .split-panel:hover .panel-title { opacity: 1; text-shadow: 0 0 10px var(--neon-cyan); }
+        .split-panel.active .panel-title { opacity: 0; pointer-events: none; }
+        .panel-content { width: 100%; height: 100%; padding: 25px; opacity: 0; pointer-events: none; transition: opacity 0.3s; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--neon-cyan) rgba(0, 0, 0, 0.3); }
+        .panel-content::-webkit-scrollbar { width: 6px; }
+        .panel-content::-webkit-scrollbar-track { background: rgba(0, 240, 255, 0.05); border-radius: 3px; }
+        .panel-content::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 3px; }
+        .split-panel.active .panel-content { opacity: 1; pointer-events: auto; }
+        .promo-video-container { width: 100%; border: 2px solid var(--neon-cyan); background: #000; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); }
+        .promo-video-container video { width: 100%; display: block; outline: none; }
+        .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .photo-card { position: relative; border: 1px solid rgba(0, 240, 255, 0.3); overflow: hidden; background: #000; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); transition: all 0.3s ease; cursor: crosshair; }
+        .photo-card:hover { transform: translateY(-5px); border-color: var(--neon-pink); box-shadow: 0 0 25px var(--neon-pink); z-index: 10; }
+        .photo-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; filter: grayscale(60%) contrast(1.2); transition: all 0.3s; display: block; }
+        .photo-card:hover img { filter: grayscale(0%) contrast(1.1); transform: scale(1.05); }
+        .photo-caption { position: absolute; bottom: -50px; left: 0; width: 100%; padding: 10px 15px; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); color: #fff; font-size: 0.9rem; transition: bottom 0.3s; }
+        .photo-card:hover .photo-caption { bottom: 0; }
+
+        .game-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+        .game-header { margin-bottom: 20px; text-align: center; }
+        .game-title { font-family: 'Orbitron', sans-serif; font-size: 2rem; color: var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan); margin-bottom: 5px;}
+        .game-stats { font-family: 'Rajdhani', sans-serif; font-size: 1.2rem; color: #fff; }
+        .game-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; max-width: 600px; width: 100%; }
+        .memory-card { aspect-ratio: 3/4; perspective: 1000px; cursor: pointer; }
+        .memory-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; }
+        .memory-card.flipped .memory-card-inner, .memory-card.matched .memory-card-inner { transform: rotateY(180deg); }
+        .memory-card-front, .memory-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; justify-content: center; align-items: center; border-radius: 8px; overflow: hidden; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); }
+        .memory-card-back { background: rgba(10, 10, 20, 0.8); border: 2px solid var(--neon-pink); box-shadow: inset 0 0 20px rgba(255, 0, 255, 0.2); }
+        .memory-card-back::after { content: '?'; font-family: 'Orbitron', sans-serif; font-size: 2.5rem; color: var(--neon-pink); }
+        .memory-card-front { background: #000; transform: rotateY(180deg); border: 2px solid var(--neon-cyan); font-size: 3rem; }
+        .memory-card.matched .memory-card-front { border-color: var(--neon-yellow); box-shadow: 0 0 20px var(--neon-yellow); }
+        .game-controls { margin-top: 20px; display: flex; gap: 15px; }
+        .game-btn { padding: 8px 25px; background: transparent; border: 2px solid var(--neon-cyan); color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 0.9rem; transition: 0.3s; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); cursor: pointer; }
+        .game-btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); }
+
+        .top-bar { position: absolute; top: 4%; right: 5%; display: flex; gap: 15px; z-index: 2000; }
+        .control-btn { padding: 10px 20px; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: bold; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); transition: all 0.3s; text-shadow: 0 0 5px var(--neon-cyan); display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .control-btn:hover, .control-btn.active { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); }
+        .control-btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); display: none; justify-content: center; align-items: center; z-index: 10000; backdrop-filter: blur(5px); }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: #0a0a12; border: 1px solid var(--neon-pink); padding: 40px 50px; text-align: center; box-shadow: 0 0 30px rgba(255, 0, 255, 0.5); clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px); animation: modalIn 0.3s ease-out; }
+        @keyframes modalIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-content h3 { font-family: 'Orbitron', sans-serif; font-size: 2rem; margin-bottom: 25px; color: var(--neon-pink); text-shadow: 0 0 10px var(--neon-pink); }
+        .modal-content input { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--neon-cyan); color: #fff; font-family: inherit; outline: none; }
+        .modal-content input:focus { border-color: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); }
+        .modal-content .btn-submit { width: 100%; padding: 12px; background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 1rem; transition: 0.3s; cursor: pointer; }
+        .modal-content .btn-submit:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); }
+        .modal-content .btn-close { margin-top: 20px; background: transparent; border: none; color: #888; font-family: inherit; font-size: 1rem; cursor: pointer; }
+        .modal-content .btn-close:hover { color: #fff; }
+
+        /* ================= 弹幕评论系统（样式保留，功能停用） ================= */
+        #danmaku-layer { position: fixed; inset: 0; pointer-events: none; z-index: 500; overflow: hidden; transition: opacity 0.4s ease; }
+        #danmaku-layer.hidden { opacity: 0; pointer-events: none; }
+        .danmaku-item { position: absolute; white-space: nowrap; font-family: 'Rajdhani', "Microsoft YaHei", sans-serif; font-weight: 700; letter-spacing: 1px; padding: 5px 14px; border-radius: 4px; background: rgba(5, 5, 10, 0.42); backdrop-filter: blur(4px); text-shadow: 0 0 6px currentColor, 0 0 14px currentColor; border: 1px solid rgba(255, 255, 255, 0.08); will-change: transform; pointer-events: none; animation: danmakuMove linear forwards; }
+        @keyframes danmakuMove { from { transform: translateX(0); } to { transform: translateX(calc(-100vw - 100%)); } }
+
+        @media (max-width: 768px) {
+            #mouse-glow { display: none; } 
+            .title-first, .title-second { font-size: 3rem; letter-spacing: 8px; }
+            .hero-english { font-size: 1rem; letter-spacing: 2px; }
+            .side-nav { gap: 15px; right: 2%; }
+            .nav-item { font-size: 0.9rem; padding: 5px; }
+            .top-bar { top: 2%; right: 2%; gap: 10px; }
+            .control-btn { padding: 8px 12px; font-size: 0.8rem; }
+            
+            .agents-side-toggle { top: 6%; gap: 10px; }
+            .side-btn { padding: 8px 15px; font-size: 0.8rem; }
+
+            .agents-wall { flex-direction: row; overflow-x: auto; justify-content: flex-start; padding: 20px; width: 100vw; height: 50vh; gap: 15px; }
+            .agent-card { min-width: 140px; max-width: 140px; height: 100%; }
+            .agent-card-info { opacity: 1; transform: translateY(0); }
+            .agent-card-label { display: none; }
+            
+            .modal-info-panel { left: 5%; top: auto; bottom: 10%; width: 90%; transform: translateY(0); z-index: 10; background: rgba(10,10,20,0.8); padding: 15px; border-radius: 10px; }
+            .modal-real-name { font-size: 2.5rem; }
+            .modal-art { height: 60vh; width: 100vw; left: 50%; transform: translateX(-50%); bottom: 30%; }
+            .modal-bg-reflection { display: none; }
+            #modal-logo-canvas { width: 100vw; height: 100vw; opacity: 0.05; }
+            .voice-btn { bottom: 2%; right: 5%; font-size: 0.85rem; padding: 8px 15px; z-index: 20; }
+
+            .records-container { flex-direction: column; width: 90vw; height: 75vh; gap: 10px;}
+            .record-list { width: 100%; flex-direction: row; flex-wrap: wrap; gap: 15px; border-left: none; border-bottom: 2px solid rgba(0, 240, 255, 0.2); padding: 10px 0; justify-content: center; }
+            .record-item { font-size: 1rem; }
+            .record-item::before { display: none; }
+            .content-display { width: 100%; height: 85%; }
+            .story-content { font-size: 0.95rem; padding: 0 15px 30px 15px; }
+            #record-hover-img { display: none; }
+
+            .record-detail-body { padding: 14px 16px 26px; }
+            .rec-desc p { font-size: 0.95rem; line-height: 1.85; }
+            .rec-gallery { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+            .rec-photo-caption { font-size: 0.7rem; padding: 5px; }
+            .record-detail-header { padding: 9px 14px; font-size: 0.72rem; }
+            .record-detail-header .hint { display: none; }
+
+            .more-split-container { flex-direction: column; width: 92vw; height: 70vh; gap: 10px; }
+            .split-panel { flex: 1; }
+            .split-panel.active { flex: 6; }
+            .panel-title { writing-mode: horizontal-tb; font-size: 1.5rem; }
+            .panel-content { padding: 10px; }
+            
+            .photo-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+            .photo-caption { font-size: 0.75rem; padding: 5px; }
+            
+            .game-title { font-size: 1.5rem; }
+            .game-grid { gap: 8px; }
+            .memory-card-back::after { font-size: 1.8rem; }
+            .memory-card-front { font-size: 2rem; }
+
+            .lightbox-content { max-width: 95vw; padding: 5px; }
+            .lightbox-content img { max-height: 70vh; }
+            .lightbox-close { top: -10px; right: -10px; width: 30px; height: 30px; font-size: 18px; }
+
+            .danmaku-item { font-size: 0.9rem !important; padding: 3px 10px; }
+            .top-bar { gap: 8px; }
+            .control-btn span { display: none; }
+            .control-btn { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="boot-screen">
+        <canvas id="boot-canvas"></canvas>
+        <div id="boot-flash"></div>
+    </div>
+
+    <div class="bg-lights"></div>
+    <div id="mouse-glow"></div>
+    <div id="transition-glitch"></div>
+
+    <!-- 弹幕层（空容器保留，避免 updateNav 取空） -->
+    <div id="danmaku-layer"></div>
+
+    <!-- 背景音乐与游戏音乐 -->
+    <audio id="bg-music" loop>
+        <source src="pic\Cyberpunk_-_Energysound.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="game-music" loop>
+        <source src="pic\NINJASLIPDECOMBAT-12ko_-_med.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- 右上角控制面板 -->
+    <div class="top-bar">
+        <!-- 弹幕功能已停用
+        <button class="control-btn" id="danmaku-list-btn">
+            <svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+            <span>弹幕</span>
+        </button>
+        -->
+        <button class="control-btn" id="music-toggle">
+            <svg id="music-icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="music-icon-pause" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            <span id="music-text">MUSIC</span>
+        </button>
+        <button class="control-btn" id="login-btn">
+            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            <span>LOGIN</span>
+        </button>
+    </div>
+
+    <div class="side-nav">
+        <div class="nav-item active" data-target="section-hero">HOME</div>
+        <div class="nav-item" data-target="section-meet">RECORD</div>
+        <div class="nav-item" data-target="section-shaoxia">AGENTS</div>
+        <div class="nav-item" data-target="section-gengduo">MORE</div>
+    </div>
+
+    <div class="scroll-container" id="scroll-container">
+        
+        <section class="section" id="section-hero">
+            <div class="hero-bg-animation">
+                <video src="pic\幽灵 玛莉嘉.mp4" autoplay loop muted playsinline></video>
+            </div>
+            <h1 class="hero-title">
+                <span class="title-first">彩虹六号</span>
+                <span class="hero-english">Free Elo Squad</span>
+                <span class="title-second">6G团队</span>
+            </h1>
+            <div class="slide-down-arrow" onclick="window.dispatchEvent(new WheelEvent('wheel', {deltaY: 100}))">
+                <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+            </div>
+        </section>
+
+        <section class="section" id="section-meet">
+            <div class="records-container">
+                <div class="record-list">
+                    <!-- RECORD 悬浮图片 -->
+                    <div class="record-item" data-record="rec-01" data-preview="pic\R6S_gp_Claymore.webp" onclick="toggleRecord(event, 'rec-01')">
+                        REC 01 // 初遇
+                    </div>
+                    <div class="record-item" data-record="rec-02" data-preview="pic\R6S_gp_Proximity_Alarm.webp" onclick="toggleRecord(event, 'rec-02')">
+                        REC 02 // 激战
+                    </div>
+                    <div class="record-item" data-record="rec-03" data-preview="pic\R6S_gp_Smoke_Grenade.webp" onclick="toggleRecord(event, 'rec-03')">
+                        REC 03 // 狂欢
+                    </div>
+                    <div class="record-item" data-record="rec-04" data-preview="pic\R6S_gp_Bulletproof_camera.webp" onclick="toggleRecord(event, 'rec-04')">
+                        REC 04 // 传说
+                    </div>
+                </div>
+                
+                <div class="content-display">
+                    <div class="story-terminal" id="story-terminal">
+                        <div class="terminal-header">
+                            <span>[ DATA LOG : 相遇之初 ]</span>
+                            <span>▶ MANUAL SCROLL</span>
+                        </div>
+                        <div class="story-viewport">
+                            <div class="story-content">
+                                <p>那是一个雷雨交加的夜晚，你被卷入了一场由时空乱流引发的数据风暴。</p>
+                                <p>四周是无尽的暗夜，一头由乱码组成的巨大魔兽正向你逼近。屏幕上跳动着刺眼的红光，你的心跳快得像要跃出胸膛。就在你快要绝望的时候，一道极致的冷静声音穿透了虚空：</p>
+                                <p>“别慌，这只是一场时空乱流。”</p>
+                                <p>是 <strong>lxuxl</strong>。他像一座无法逾越的堡垒，面不改色地挡在了你的身前。作为团队的情报官，他早已看透了这片虚拟空间的所有法则。他的眼睛里没有慌乱，只有对数据的绝对理智。那一刻，他身上的青光安抚了你狂跳的心脏，仿佛只要有他在，天塌下来也能算出逃生的路径。</p>
+                                <p>然而，魔兽的咆哮打破了宁静。它张开深渊般的巨口，却在下一秒被一把巨刃狠狠劈退！</p>
+                                <p><strong>大壮</strong> 迈着坚定的步伐走来，魁梧的身躯如同一座大山，稳稳地挡在了你们面前。作为团队最勇猛的打野，他浑身上下散发着雷霆般的威压。“行侠仗义之人，绝不会让新人在我的地盘受欺负！”他拍了拍胸口，雷霆重击轰然落下，将魔兽的防线撕开了一道口子。</p>
+                                <p>正当你惊魂未定时，一只毛茸茸、发着微光的数据猫蹭了蹭你的脚踝。回头一看，是 <strong>快乐的火花</strong>。作为团队的天尊，他永远带着治愈人心的笑容，哪怕在最危险的战局里，只要看到他，所有人就会觉得“这局稳了”。他笑着递给你一颗糖果：“喵~吃颗糖压压惊吧，这里虽然吓人，但其实很暖和哦。”</p>
+                                <p>就在这时，远处的虚空深处传来一声极轻的枪栓拉动声。</p>
+                                <p><strong>fury</strong> 正沉默不语地潜伏在暗处。他是团队最极致的狙击手，也是最顾家的“人夫”。他连看都没看你一眼，连一句多余的解释都没有，但在他的八倍镜里，任何敢靠近你们的敌人，都会在听到枪响的瞬间被爆头。他用最安静的方式，在千里之外撑起了一把绝对安全的保护伞。</p>
+                                <p>“哎呀，老大怎么还不来？”随着一阵清脆的笑声，<strong>蒂蒂</strong> 突然从你头顶的虚空中倒挂下来，吓得你差点跌倒。这个憨憨的不屈者调皮地眨了眨眼，下一秒却坚定地站在了你的身前。“大家都站在我身后！”他张开双臂，那一瞬间，他娇小的背影竟显得无比高大，成为了你最坚实的后盾。</p>
+                                <p>四周的阴影突然如活物般蠕动，几只漏网的乱码魔兽企图从背后偷袭。</p>
+                                <p>“既然来了，就是伙伴，我不会让你死。”</p>
+                                <p>一把冰冷的匕首无声无息地抵住了魔兽的后颈。<strong>云</strong> 从暗夜中缓缓浮现，如同无声无息的幽灵。作为最致命的伏击客，她习惯于融入黑暗，但就在你即将受伤的刹那，她那根能起死回生的纳米医疗针也随时为你准备着。她冷冷地瞥了你一眼，却在击杀魔兽后，破天荒地朝你伸出了手。</p>
+                                <p>危机解除，星空重新亮起。</p>
+                                <p>就在这时，有人拽了拽你的衣角。你低下头，看到了 <strong>狂徒忆梦</strong>。</p>
+                                <p>她自称“狂徒”，顶着站长的头衔，却是个戴着全息猫耳的“喵喵”。大家都说，她其实是个瞎子，也是个聋子，平时看起来完全就是一个吉祥物，是个被骂了也只会偷偷躲起来哭的“废物”。</p>
+                                <p>但此刻，这个看起来毫无战斗力的小站长，正小心翼翼地拉着你的手。她或许看不清这漫天乱码的可怕，也听不到魔兽的咆哮，但她能感受到大家传递过来的温度。</p>
+                                <p>大壮摸了摸她的头，lxuxl 默默地站在她身后，火花把唯一的数据糖果塞进她嘴里，蒂蒂在周围转着圈逗她开心，fury 的狙击镜默默锁定了她周围的所有威胁，而云则用医疗光束温柔地拂过她的发丝。</p>
+                                <p>“欢迎来到我们的世界。”她虽然“看不见”你，却准确地对你露出了一个最干净的笑容。</p>
+                                <p>七个人，七种颜色，七道代码。</p>
+                                <p>他们中有理智的怪物，有沉默的杀手，有呆呆的守护者，也有脆弱得不堪一击的吉祥物。但在这片冰冷的虚空世界里，<strong>大壮</strong> 守护着正义，<strong>火花</strong> 治愈着伤痛，<strong>lxuxl</strong> 掌控着理智，<strong>fury</strong> 践行着责任，<strong>蒂蒂</strong> 扛起了护盾，<strong>云</strong> 收割着死亡也挽留着生命。</p>
+                                <p>而 <strong>狂徒忆梦</strong>，她是这个团队的“心”。即使她什么都看不见，即使她经常偷偷掉眼泪，但只要她还在，这支队伍就有归途。</p>
+                                <p>狂徒忆梦擦干了眼角（虽然不知道为什么会有一点点湿）的泪花，抬起头，向你发出了最郑重的邀请：</p>
+                                <p>“我们的队伍正好缺个记录者。要不要留下来，成为我们的第八个 Operator？”</p>
+                                <p>那一刻，看着这群性格各异却意外温暖的人，你重重地点了点头。</p>
+                                <p>从此，代码世界有了新的传说。在这个名为“6G团队”的赛博江湖里，没有真正的无敌，只有永远的并肩。而你的旅程，才刚刚开始。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="record-detail-panel" id="record-detail-panel">
+                        <div class="record-detail-header">
+                            <span id="rec-detail-title">REC 02 // 激战</span>
+                            <span class="hint">▶ CLICK AGAIN TO CLOSE</span>
+                        </div>
+                        <div class="record-detail-body">
+                            <div class="rec-desc" id="rec-detail-desc"></div>
+                            <div class="rec-gallery" id="rec-detail-gallery"></div>
+                        </div>
+                    </div>
+
+                    <div class="canvas-container" id="canvas-container">
+                        <canvas id="logo-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide-down-arrow" onclick="window.dispatchEvent(new WheelEvent('wheel', {deltaY: 100}))">
+                <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+            </div>
+        </section>
+
+        <!-- AGENTS 页面 -->
+        <section class="section" id="section-shaoxia">
+            
+            <!-- 全屏背景倒影 -->
+            <img id="agents-bg-reflection" src="" alt="">
+
+            <!-- 顶部攻防切换按钮 (进攻在左，防守在右) -->
+            <div class="agents-side-toggle">
+                <button class="agents-side-btn side-btn active" data-side="attack" onclick="switchAgentsSide('attack')">
+                    进攻方 ATK
+                </button>
+                <button class="agents-side-btn side-btn" data-side="defense" onclick="switchAgentsSide('defense')">
+                    防守方 DEF
+                </button>
+            </div>
+
+            <!-- 卡片墙 -->
+            <div class="agents-wall" id="agents-wall">
+                <!-- JS 动态生成卡片 -->
+            </div>
+
+            <div class="slide-down-arrow" onclick="window.dispatchEvent(new WheelEvent('wheel', {deltaY: 100}))">
+                <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+            </div>
+        </section>
+
+        <section class="section" id="section-gengduo">
+            <div class="more-split-container">
+                <div class="split-panel active" onclick="switchMorePanel(event, 0)" id="panel-video">
+                    <div class="panel-title">/ VIDEO</div>
+                    <div class="panel-content">
+                        <div class="promo-video-container">
+                            <video src="pic\fan_2.mp4" controls poster="pic/444.png" preload="metadata"></video>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="split-panel" onclick="switchMorePanel(event, 1)" id="panel-photos">
+                    <div class="panel-title">/ PHOTOS</div>
+                    <div class="panel-content">
+                        <div class="photo-grid">
+                            <div class="photo-card" onclick="openLightbox('pic/444.png'); event.stopPropagation();">
+                                <img src="pic/444.png" alt="照片1">
+                                <div class="photo-caption">我们团队看板娘~</div>
+                            </div>
+                            <div class="photo-card" onclick="openLightbox('pic/喵.jpg'); event.stopPropagation();">
+                                <img src="pic/喵.jpg" alt="照片2">
+                                <div class="photo-caption">蒂蒂的猫猫~</div>
+                            </div>
+                            <div class="photo-card" onclick="openLightbox('pic/猫.jpg'); event.stopPropagation();">
+                                <img src="pic/猫.jpg" alt="照片3">
+                                <div class="photo-caption">小黑球~</div>
+                            </div>
+                            <div class="photo-card" onclick="openLightbox('pic/round.png'); event.stopPropagation();">
+                                <img src="pic/round.png" alt="照片5">
+                                <div class="photo-caption">狂徒的创作~</div>
+                            </div>
+                            <div class="photo-card" onclick="openLightbox('pic/bce.png'); event.stopPropagation();">
+                                <img src="pic/bce.png" alt="照片6">
+                                <div class="photo-caption">狂徒的创作2~</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="split-panel" onclick="switchMorePanel(event, 2)" id="panel-game">
+                    <div class="panel-title">/ GAME</div>
+                    <div class="panel-content">
+                        <div class="game-container">
+                            <div class="game-header">
+                                <h2 class="game-title">MEMORY MATRIX</h2>
+                                <div class="game-stats">
+                                    MOVES: <span id="game-moves">0</span> | MATCHES: <span id="game-matches">0</span>/6
+                                </div>
+                            </div>
+                            <div class="game-grid" id="game-grid"></div>
+                            <div class="game-controls">
+                                <button class="game-btn" onclick="initGame(); event.stopPropagation();">重新开始</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="copyright" style="position: absolute; bottom: 5%; color: rgba(255,255,255,0.3); font-size: 1rem; font-family: 'Orbitron', sans-serif; letter-spacing: 3px;">© 狂徒忆梦工作室</div>
+        </section>
+    </div>
+
+    <!-- ================= 全屏成员个人档案弹窗 ================= -->
+    <div class="agent-modal-overlay" id="agent-modal">
+        <!-- 特效背景文字 -->
+        <div class="bg-text-top">R6 x sixG</div>
+        <div class="bg-text-vertical">CHARACTER</div>
+
+        <!-- 居中赛博队标 -->
+        <canvas id="modal-logo-canvas"></canvas>
+
+        <!-- 黑白背景倒影 -->
+        <img src="" alt="" class="modal-bg-reflection" id="modal-bg-art">
+        <!-- 彩色前景大图 -->
+        <img src="" alt="" class="modal-art" id="modal-art">
+
+        <!-- 关闭按钮 -->
+        <button class="modal-close-btn" onclick="closeAgentModal()">×</button>
+
+        <!-- 左侧信息栏 -->
+        <div class="modal-info-panel">
+            <div class="modal-side-toggle">
+                <button class="modal-side-btn side-btn active" data-side="attack" onclick="switchModalSide('attack')">进攻方 ATK</button>
+                <button class="modal-side-btn side-btn" data-side="defense" onclick="switchModalSide('defense')">防守方 DEF</button>
+            </div>
+
+            <div class="modal-real-name" id="modal-real-name">真实姓名</div>
+            <div class="modal-op-name" id="modal-op-name">常用干员</div>
+
+            <div class="modal-details" id="modal-details">
+                <!-- JS 动态生成属性 -->
+            </div>
+            
+            <div class="modal-desc" id="modal-desc">
+                <!-- JS 动态生成简介 -->
+            </div>
+        </div>
+
+        <!-- 语音播放按钮 -->
+        <button class="voice-btn" id="voice-btn">
+            <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+            <span>播放语音</span>
+        </button>
+        
+        <!-- 隐藏的音频标签 -->
+        <audio id="voice-audio"></audio>
+    </div>
+
+    <!-- RECORD 页面鼠标跟随预览图（全局唯一，无边框，夹在背景和内容之间） -->
+    <img src="" id="record-hover-img" alt="预览">
+
+    <div class="modal-overlay" id="login-modal">
+        <div class="modal-content">
+            <h3>SYSTEM ACCESS</h3>
+            <input type="text" placeholder="INPUT ID" id="login-username" />
+            <input type="password" placeholder="PASSWORD" id="login-password" />
+            <button class="btn-submit" id="login-submit-btn">LOGIN</button>
+            <button class="btn-close" id="modal-close">CANCEL</button>
+        </div>
+    </div>
+
+    <div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
+        <div class="lightbox-content" onclick="event.stopPropagation()">
+            <span class="lightbox-close" onclick="closeLightbox()">×</span>
+            <img src="" id="lightbox-img" alt="大图">
+        </div>
+    </div>
+
+    <!-- 弹幕功能已停用：发送按钮 / 发送弹窗 / 历史面板
+    <button id="danmaku-trigger">
+        <svg viewBox="0 0 24 24"><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg>
+        <span>发弹幕</span>
+    </button>
+
+    <div id="danmaku-modal">
+        <div class="modal-box">
+            <h3>★ 发送弹幕 ★</h3>
+            <input type="text" id="danmaku-name" placeholder="你的昵称" maxlength="20" />
+            <textarea id="danmaku-text" placeholder="说点什么吧……（最多 100 字）" maxlength="100"></textarea>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="danmaku-cancel">取消</button>
+                <button class="btn-send" id="danmaku-send">发送</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="danmaku-history-panel">
+        <div class="history-header">
+            <h3>弹幕记录</h3>
+            <button class="history-close" id="history-close-btn">×</button>
+        </div>
+        <div class="history-list" id="history-list"></div>
+    </div>
+    -->
+
+    <script>
+        // ===================== 全局变量 =====================
+        const scrollContainer = document.getElementById('scroll-container');
+        const transitionGlitch = document.getElementById('transition-glitch');
+        const sections = Array.from(document.querySelectorAll('.section'));
+        const navItems = Array.from(document.querySelectorAll('.nav-item'));
+
+        let currentIndex = 0;
+        let isTransitioning = false;
+        let bootActive = true;
+
+        /* 
+         * ===================== 核心数据区 =====================
+         * 配置每个成员的文案、属性、图片和语音路径。
+         */
+        const TEAM_MEMBERS = [
+            {
+                id: 'kuangtu',
+                realName: '狂徒忆梦',
+                defaultSide: 'attack',
+                age: '21岁', birthday: '10月20日', height: '170cm',
+                info: { '游戏id': 'nyx581971', '爱好': '绘画', '个性签名': '（*＾-＾*）' },
+                desc: '完全一个吉祥物，可能还是瞎子，也可能是聋子，被骂了只会偷偷哭的废物而已。',
+                defense: {
+                    opName: 'Castle',
+                    color: '#00f0ff',
+                    art: 'pic/Potrait_castle.webp',
+                    bgArt: 'pic/Potrait_castle.webp'
+                },
+                attack: {
+                    opName: 'Ash',
+                    color: '#ff5e00',
+                    art: 'pic/Potrait_ash.webp',
+                    bgArt: 'pic/Potrait_ash.webp'
+                },
+                voice: '' 
+            },
+            {
+                id: 'dazhuang',
+                realName: '大壮',
+                defaultSide: 'attack',
+                age: '25岁', birthday: '未知', height: '185cm',
+                info: { '游戏id': 'lior', '爱好': '未知', '个性签名': '（*＾-＾*）' },
+                desc: '他是队伍里专门负责“把对面野位揪出来”的人。防守时，他喜欢离开点位打野，靠脚步、抢线和地图理解压缩对方绕后空间。',
+                defense: {
+                    opName: 'Azami',
+                    color: '#ff00ff',
+                    art: 'pic/Potrait_azami.webp',
+                    bgArt: 'pic/Potrait_azami.webp'
+                },
+                attack: {
+                    opName: 'Lion',
+                    color: '#ff00ff',
+                    art: 'pic/Potrait_lion.webp',
+                    bgArt: 'pic/Potrait_lion.webp'
+                },
+                voice: ''
+            },
+            {
+                id: 'huohua',
+                realName: '快乐的火花',
+                defaultSide: 'attack',
+                age: '28岁', birthday: '未知', height: '175cm',
+                info: { '游戏id': 'bra_HappyFire/huohua2000', '爱好': '未知', '个性签名': '（*＾-＾*）' },
+                desc: '花花的价值不体现在击杀数上，而体现在“战术没有散”。队伍推进时，他负责统一节奏;局势变化时，他负责临时调整;残局混乱时，他负责把剩下的人重新组织起来。对R66G来说，花花是整套战术能顺利跑完的最后一道保险。',
+                defense: {
+                    opName: 'Tachanka',
+                    color: '#fcee0a',
+                    art: 'pic/Potrait_tachanka.webp',
+                    bgArt: 'pic/Potrait_tachanka.webp'
+                },
+                attack: {
+                    opName: 'IQ',
+                    color: '#fcee0a',
+                    art: 'pic/Potrait_iq.webp',
+                    bgArt: 'pic/Potrait_iq.webp'
+                },
+                voice: ''
+            },
+            {
+                id: 'lxuxl',
+                realName: 'lxuxl',
+                defaultSide: 'attack',
+                age: '20岁', birthday: '未知', height: '178cm',
+                info: { '游戏id': 'lxuxl.6G', '爱好': '未知', '个性签名': '（*＾-＾*）' },
+                desc: '他是队伍里负责“把墙炸开、把门拆掉、把局面撕开"的人。和大壮一样，老茶油也偏向主动出击，但他的主动更直接一-不是先绕、先等、先摸，而是第一时间把正面障碍处理干净，给队伍打开推进通道。',
+                defense: {
+                    opName: 'Mute',
+                    color: '#ff5e00',
+                    art: 'pic/Potrait_mute.webp',
+                    bgArt: 'pic/Potrait_mute.webp'
+                },
+                attack: {
+                    opName: 'Twitch',
+                    color: '#ff5e00',
+                    art: 'pic/Potrait_twitch.webp',
+                    bgArt: 'pic/Potrait_twitch.webp'
+                },
+                voice: ''
+            },
+            {
+                id: 'fury',
+                realName: 'fury',
+                defaultSide: 'attack',
+                age: '35岁', birthday: '未知', height: '183cm',
+                info: { '游戏id': 'Fury.1945', '爱好': '未知', '个性签名': '（*＾-＾*）' },
+                desc: '老福瑞的打法冷静、耐心、出手果断。他不追求开局刷数据，而是把最关键的击杀留给最关键的回合。对R66G来说，花花负责把战术铺开，老福瑞负责在战术被打散后，一个人把比赛收回来。',
+                defense: {
+                    opName: 'Mozzie',
+                    color: '#00ff66',
+                    art: 'pic/Potrait_mozzie.webp',
+                    bgArt: 'pic/Potrait_mozzie.webp'
+                },
+                attack: {
+                    opName: 'Osa',
+                    color: '#00ff66',
+                    art: 'pic/Potrait_osa.webp',
+                    bgArt: 'pic/Potrait_osa.webp'
+                },
+                voice: ''
+            },
+            {
+                id: 'didi',
+                realName: '蒂蒂',
+                defaultSide: 'attack',
+                age: '21岁', birthday: '9月17日', height: '178cm',
+                info: { '游戏id': 'No-democracy', '爱好': '摄影', '个性签名': '（*＾-＾*）' },
+                desc: '“他是队伍里“绝大部分战术能跑起来”的关键一环。和单纯顶在前面抗抢线不同，小茶油更像一个战术执行者——队伍想打什么套路，他往往是那个让套路成立的人。',
+                defense: {
+                    opName: 'Doc',
+                    color: '#b000ff',
+                    art: 'pic/Potrait_doc.webp',
+                    bgArt: 'pic/Potrait_doc.webp'
+                },
+                attack: {
+                    opName: 'Blitz',
+                    color: '#b000ff',
+                    art: 'pic/Potrait_blitz.webp',
+                    bgArt: 'pic/Potrait_blitz.webp'
+                },
+                voice: 'pic/[1]八嘎.wav'
+            },
+            {
+                id: 'yun',
+                realName: '云',
+                defaultSide: 'attack',
+                age: '20岁', birthday: '未知', height: '173cm',
+                info: { '游戏id': 'whzswzssh', '爱好': '未知', '个性签名': '（*＾-＾*）' },
+                desc: '悄无声息埋伏在阴暗之处。你说她被敌人发现？不，那是敌人早就死了。',
+                defense: {
+                    opName: 'Thron',
+                    color: '#ff3366',
+                    art: 'pic/Potrait_thorn.webp',
+                    bgArt: 'pic/Potrait_thorn.webp'
+                },
+                attack: {
+                    opName: 'Finka',
+                    color: '#ff3366',
+                    art: 'pic/Potrait_finka.webp',
+                    bgArt: 'pic/Potrait_finka.webp'
+                },
+                voice: 'pic/[0]诶.wav'
+            }
+        ];
+
+        // 状态管理
+        let currentAgentsSide = 'attack'; // 默认进攻方
+        let currentModalMember = null;
+        let currentModalSide = 'attack';
+
+        // ===================== 1. 键盘打字爱心溅射特效 =====================
+        function createKeyboardSplash(targetElement) {
+            if (!targetElement) return;
+            const rect = targetElement.getBoundingClientRect();
+            const colors = ['#00f0ff', '#ff00ff', '#fcee0a', '#ffffff', '#ff3366'];
+
+            for (let i = 0; i < 3; i++) {
+                const heart = document.createElement('span');
+                heart.classList.add('keyboard-heart');
+                heart.textContent = '♥';
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                heart.style.color = color;
+                const size = Math.random() * 8 + 10;
+                heart.style.fontSize = size + 'px';
+                const startX = rect.left + (Math.random() * rect.width * 0.8);
+                const startY = rect.top + (Math.random() * rect.height);
+                heart.style.left = startX + 'px';
+                heart.style.top = startY + 'px';
+                const tx = (Math.random() * 80 - 40) + 'px';
+                const ty = (Math.random() * -80 - 20) + 'px';
+                const rot = (Math.random() * 120 - 60) + 'deg';
+                heart.style.setProperty('--tx', tx);
+                heart.style.setProperty('--ty', ty);
+                heart.style.setProperty('--rot', rot);
+                document.body.appendChild(heart);
+                setTimeout(() => { heart.remove(); }, 1000);
+            }
+        }
+
+        const loginNameInput = document.getElementById('login-username');
+        const loginPassInput = document.getElementById('login-password');
+        if (loginNameInput) loginNameInput.addEventListener('input', () => createKeyboardSplash(loginNameInput));
+        if (loginPassInput) loginPassInput.addEventListener('input', () => createKeyboardSplash(loginPassInput));
+
+        // 弹幕输入框（已停用）
+        const danmakuNameInput = document.getElementById('danmaku-name');
+        const danmakuTextInput = document.getElementById('danmaku-text');
+        if (danmakuNameInput) danmakuNameInput.addEventListener('input', () => createKeyboardSplash(danmakuNameInput));
+        if (danmakuTextInput) danmakuTextInput.addEventListener('input', () => createKeyboardSplash(danmakuTextInput));
+
+        // ===================== 2. 鼠标光晕 & 特效 =====================
+        const mouseGlow = document.getElementById('mouse-glow');
+        document.addEventListener('mousemove', (e) => {
+            requestAnimationFrame(() => {
+                mouseGlow.style.transform = `translate(${e.clientX - 150}px, ${e.clientY - 150}px)`;
+            });
+        });
+
+        const heartColors = ['#00f0ff', '#ff00ff', '#fcee0a', '#ffffff', '#ff3366', '#b000ff'];
+        let lastHeartTime = 0;
+        document.addEventListener('mousemove', (e) => {
+            if (bootActive) return;
+            const now = Date.now();
+            if (now - lastHeartTime < 80) return;
+            lastHeartTime = now;
+            if (window.innerWidth <= 768) return;
+
+            const heart = document.createElement('span');
+            heart.classList.add('mouse-heart');
+            heart.textContent = '♥';
+            heart.style.color = heartColors[Math.floor(Math.random() * heartColors.length)];
+            heart.style.fontSize = (Math.random() * 12 + 12) + 'px';
+            heart.style.left = (e.clientX + (Math.random() * 20 - 10)) + 'px';
+            heart.style.top = (e.clientY + (Math.random() * 20 - 10)) + 'px';
+            heart.style.setProperty('--dx', (Math.random() * 60 - 30) + 'px');
+            heart.style.setProperty('--rot', (Math.random() * 90 - 45) + 'deg');
+            document.body.appendChild(heart);
+            setTimeout(() => { heart.remove(); }, 1500);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (bootActive) return;
+            for (let i = 0; i < 24; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('firework-particle');
+                const color = heartColors[Math.floor(Math.random() * heartColors.length)];
+                particle.style.backgroundColor = color;
+                particle.style.boxShadow = `0 0 10px ${color}`;
+                particle.style.width = particle.style.height = (Math.random() * 6 + 2) + 'px';
+                particle.style.left = e.clientX + 'px';
+                particle.style.top = e.clientY + 'px';
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 120 + 50;
+                particle.style.setProperty('--tx', (Math.cos(angle) * distance) + 'px');
+                particle.style.setProperty('--ty', (Math.sin(angle) * distance) + 'px');
+                document.body.appendChild(particle);
+                setTimeout(() => { particle.remove(); }, 800);
+            }
+        });
+
+        // ===================== 3. 照片灯箱 =====================
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        function openLightbox(src) {
+            lightboxImg.src = src;
+            lightbox.classList.add('active');
+        }
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+            setTimeout(() => { lightboxImg.src = ''; }, 300);
+        }
+
+        // ===================== 4. 音乐逻辑 =====================
+        const bgMusic = document.getElementById('bg-music');
+        const gameMusic = document.getElementById('game-music');
+        const iconPlay = document.getElementById('music-icon-play');
+        const iconPause = document.getElementById('music-icon-pause');
+        const musicText = document.getElementById('music-text');
+        
+        let isPlaying = false;
+        let bgMusicWasPlayingBeforeGame = false; 
+        let bgMusicWasPlayingBeforeVoice = false;
+
+        function updateMusicUI(playing) {
+            if (playing) { iconPlay.style.display = 'none'; iconPause.style.display = 'block'; musicText.textContent = 'MUSIC ON'; }
+            else { iconPlay.style.display = 'block'; iconPause.style.display = 'none'; musicText.textContent = 'MUSIC OFF'; }
+        }
+
+        const savedTime = parseFloat(sessionStorage.getItem('musicCurrentTime')) || 0;
+        if (savedTime > 0 && isFinite(savedTime)) {
+            try { bgMusic.currentTime = savedTime; } catch (err) {}
+        }
+        updateMusicUI(false);
+
+        bgMusic.addEventListener('timeupdate', () => {
+            if (isFinite(bgMusic.currentTime)) {
+                sessionStorage.setItem('musicCurrentTime', bgMusic.currentTime);
+            }
+        });
+        bgMusic.addEventListener('play', () => { isPlaying = true; sessionStorage.setItem('musicIsPlaying', 'true'); updateMusicUI(true); });
+        bgMusic.addEventListener('pause', () => { isPlaying = false; sessionStorage.setItem('musicIsPlaying', 'false'); updateMusicUI(false); });
+
+        document.getElementById('music-toggle').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (isPlaying) { bgMusic.pause(); isPlaying = false; updateMusicUI(false); }
+            else { bgMusic.play().then(() => { isPlaying = true; updateMusicUI(true); }).catch(() => alert("音乐播放失败。")); }
+        });
+
+        // ===================== 5. 全新 AGENTS 页面逻辑 =====================
+
+        // 切换页面顶部攻防
+        function switchAgentsSide(side) {
+            if (currentAgentsSide === side) return;
+            currentAgentsSide = side;
+
+            // 更新按钮状态
+            document.querySelectorAll('.agents-side-btn').forEach(btn => {
+                if (btn.dataset.side === side) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            // 重新渲染卡片
+            initAgentsWall();
+        }
+
+        // 1. 初始化卡片墙
+        function initAgentsWall() {
+            const wall = document.getElementById('agents-wall');
+            wall.innerHTML = '';
+            
+            TEAM_MEMBERS.forEach(member => {
+                const opData = member[currentAgentsSide];
+
+                const card = document.createElement('div');
+                card.className = 'agent-card';
+                card.innerHTML = `
+                    <div class="agent-card-bg" style="background-image: url('${opData.art}')"></div>
+                    <div class="agent-card-info">
+                        <div class="real-name">${member.realName}</div>
+                        <div class="op-name">常用干员: ${opData.opName}</div>
+                    </div>
+                    <div class="agent-card-label">${member.realName}</div>
+                `;
+                
+                // ✨ 卡片悬浮：显示全屏放大倒影
+                card.onmouseenter = () => {
+                    const bgRef = document.getElementById('agents-bg-reflection');
+                    bgRef.src = opData.bgArt;
+                    bgRef.classList.add('active');
+                };
+                card.onmouseleave = () => {
+                    document.getElementById('agents-bg-reflection').classList.remove('active');
+                };
+
+                // 绑定点击事件，打开弹窗
+                card.onclick = () => openAgentModal(member);
+                wall.appendChild(card);
+            });
+        }
+
+        // 2. 打开弹窗
+        function openAgentModal(member) {
+            currentModalMember = member;
+            currentModalSide = currentAgentsSide; 
+
+            // 更新按钮状态
+            document.querySelectorAll('.modal-side-btn').forEach(btn => {
+                if (btn.dataset.side === currentModalSide) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            updateModalContent();
+            drawModalLogo();
+
+            const modal = document.getElementById('agent-modal');
+            modal.classList.add('active');
+        }
+
+        // 3. 关闭弹窗
+        function closeAgentModal() {
+            const modal = document.getElementById('agent-modal');
+            modal.classList.remove('active');
+            // 停止语音并恢复 BGM
+            const audio = document.getElementById('voice-audio');
+            audio.pause();
+            audio.currentTime = 0;
+            if (bgMusicWasPlayingBeforeVoice) {
+                bgMusic.play().catch(()=>{});
+                bgMusicWasPlayingBeforeVoice = false;
+            }
+        }
+
+        // 4. 切换弹窗内的阵营
+        function switchModalSide(side) {
+            if (!currentModalMember || currentModalSide === side) return;
+            currentModalSide = side;
+
+            document.querySelectorAll('.modal-side-btn').forEach(btn => {
+                if (btn.dataset.side === side) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            updateModalContent();
+        }
+
+        // 5. 更新弹窗 UI 数据
+        function updateModalContent() {
+            if (!currentModalMember) return;
+            
+            const opData = currentModalMember[currentModalSide];
+
+            // 主题色
+            document.getElementById('agent-modal').style.setProperty('--accent-color', opData.color);
+
+            // 图片更新
+            document.getElementById('modal-bg-art').src = opData.bgArt;
+            document.getElementById('modal-art').src = opData.art;
+
+            // 文字更新
+            document.getElementById('modal-real-name').textContent = currentModalMember.realName;
+            document.getElementById('modal-op-name').textContent = opData.opName;
+            
+            // 个人信息构建
+            const detailsBox = document.getElementById('modal-details');
+            let html = `
+                <div class="detail-row"><div class="detail-label">年龄</div><div class="detail-value">${currentModalMember.age || '未知'}</div></div>
+                <div class="detail-row"><div class="detail-label">生日</div><div class="detail-value">${currentModalMember.birthday || '未知'}</div></div>
+                <div class="detail-row"><div class="detail-label">身高</div><div class="detail-value">${currentModalMember.height || '未知'}</div></div>
+            `;
+            for (let key in currentModalMember.info) {
+                html += `<div class="detail-row"><div class="detail-label">${key}</div><div class="detail-value">${currentModalMember.info[key]}</div></div>`;
+            }
+            detailsBox.innerHTML = html;
+
+            // 简介
+            document.getElementById('modal-desc').textContent = currentModalMember.desc;
+
+            // 重置语音
+            const audio = document.getElementById('voice-audio');
+            if (currentModalMember.voice) {
+                audio.src = currentModalMember.voice;
+                audio.load();
+            } else {
+                audio.src = ''; 
+            }
+        }
+
+        // 6. 语音播放逻辑
+        document.getElementById('voice-btn').onclick = () => {
+            const audio = document.getElementById('voice-audio');
+            if (!audio.src) {
+                alert("暂时还没有录制这位干员的语音哦~");
+                return;
+            }
+            if (audio.paused) {
+                // 暂停 BGM
+                bgMusicWasPlayingBeforeVoice = !bgMusic.paused;
+                if (!bgMusic.paused) bgMusic.pause();
+
+                audio.play().catch(e => {
+                    alert("语音播放失败，请检查路径。");
+                    if (bgMusicWasPlayingBeforeVoice) {
+                        bgMusic.play().catch(()=>{});
+                        bgMusicWasPlayingBeforeVoice = false;
+                    }
+                });
+            } else {
+                audio.pause();
+                audio.currentTime = 0;
+                // 恢复 BGM
+                if (bgMusicWasPlayingBeforeVoice) {
+                    bgMusic.play().catch(()=>{});
+                    bgMusicWasPlayingBeforeVoice = false;
+                }
+            }
+        };
+
+        // 监听语音结束，恢复 BGM
+        document.getElementById('voice-audio').addEventListener('ended', () => {
+            if (bgMusicWasPlayingBeforeVoice) {
+                bgMusic.play().catch(()=>{});
+                bgMusicWasPlayingBeforeVoice = false;
+            }
+        });
+
+        // 7. 弹窗中间的赛博队标
+        function drawModalLogo() {
+            const mCanvas = document.getElementById('modal-logo-canvas');
+            const mCtx = mCanvas.getContext('2d');
+            const W = mCanvas.clientWidth || 600;
+            const H = mCanvas.clientHeight || 600;
+            mCanvas.width = W;
+            mCanvas.height = H;
+            
+            mCtx.clearRect(0, 0, W, H);
+            const cx = W / 2;
+            const cy = H / 2;
+            const scale = Math.min(W / 430, H / 600);
+
+            mCtx.save();
+            mCtx.translate(cx, cy - 90 * scale);
+            mCtx.scale(scale, scale);
+
+            // 盾牌
+            mCtx.beginPath();
+            mCtx.moveTo(0, -180);
+            mCtx.lineTo(200, -80);
+            mCtx.lineTo(200, 60);
+            mCtx.bezierCurveTo(200, 200, 100, 260, 0, 280);
+            mCtx.bezierCurveTo(-100, 260, -200, 200, -200, 60);
+            mCtx.lineTo(-200, -80);
+            mCtx.closePath();
+
+            mCtx.lineWidth = 16;
+            mCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            mCtx.stroke();
+            mCtx.lineWidth = 6;
+            mCtx.strokeStyle = 'rgba(0, 240, 255, 0.2)';
+            mCtx.stroke();
+
+            // 彩虹圆弧
+            const shieldCY = 50;
+            const gradient = mCtx.createLinearGradient(-120, 0, 120, 0);
+            gradient.addColorStop(0, 'rgba(255,0,51,0.3)');
+            gradient.addColorStop(0.2, 'rgba(255,136,0,0.3)');
+            gradient.addColorStop(0.4, 'rgba(255,255,0,0.3)');
+            gradient.addColorStop(0.6, 'rgba(0,255,102,0.3)');
+            gradient.addColorStop(0.8, 'rgba(0,170,255,0.3)');
+            gradient.addColorStop(1, 'rgba(170,0,255,0.3)');
+
+            mCtx.beginPath();
+            mCtx.arc(0, shieldCY, 120, Math.PI, 0);
+            mCtx.lineWidth = 24;
+            mCtx.strokeStyle = gradient;
+            mCtx.stroke();
+
+            // 准星
+            mCtx.beginPath();
+            mCtx.moveTo(0, shieldCY - 120);
+            mCtx.lineTo(0, shieldCY - 40);
+            mCtx.moveTo(0, shieldCY + 40);
+            mCtx.lineTo(0, shieldCY + 120);
+            mCtx.moveTo(-120, shieldCY);
+            mCtx.lineTo(-40, shieldCY);
+            mCtx.moveTo(40, shieldCY);
+            mCtx.lineTo(120, shieldCY);
+            mCtx.arc(0, shieldCY, 35, 0, Math.PI * 2);
+
+            mCtx.lineWidth = 6;
+            mCtx.strokeStyle = 'rgba(200, 200, 200, 0.2)';
+            mCtx.stroke();
+
+            mCtx.restore();
+        }
+
+        // 页面加载完成时初始化卡片墙
+        window.addEventListener('load', () => {
+            initAgentsWall();
+        });
+
+        //  鼠标跟随效果夹在背景和文字之间 (RECORD 页面) 
+        const recordHoverImg = document.getElementById('record-hover-img');
+
+        document.querySelectorAll('.record-item').forEach(item => {
+            const previewSrc = item.dataset.preview;
+            if (!previewSrc || !recordHoverImg) return;
+
+            item.addEventListener('mouseenter', () => {
+                recordHoverImg.src = previewSrc;
+                recordHoverImg.style.opacity = '1';
+            });
+
+            item.addEventListener('mousemove', (e) => {
+                const w = 250;
+                // 图片始终位于指针的视觉下方
+                let left = e.clientX - w / 2;
+                let top = e.clientY + 25;
+
+                // 纵向保持在指针下方
+                if (left + w > window.innerWidth - 10) left = window.innerWidth - w - 10;
+                if (left < 10) left = 10;
+
+                recordHoverImg.style.left = left + 'px';
+                recordHoverImg.style.top = top + 'px';
+            });
+
+            item.addEventListener('mouseleave', () => {
+                recordHoverImg.style.opacity = '0';
+            });
+        });
+
+        // ===================== 6. 拖拽滑动 & 页面切换 =====================
+        window.addEventListener('wheel', (e) => {
+            if (bootActive) return;
+            if (isTransitioning) return;
+            if (document.getElementById('agent-modal').classList.contains('active')) return;
+            if (e.target.closest('.story-viewport') || e.target.closest('.panel-content') || e.target.closest('.record-detail-body')) return;
+
+            e.preventDefault();
+            const direction = e.deltaY > 0 ? 1 : -1;
+            const nextIndex = currentIndex + direction;
+
+            if (nextIndex >= 0 && nextIndex < sections.length) {
+                isTransitioning = true;
+                triggerGlitchTransition(() => {
+                    currentIndex = nextIndex;
+                    scrollContainer.scrollTo({ top: sections[currentIndex].offsetTop, behavior: 'auto' });
+                    updateNav();
+                });
+            }
+        }, { passive: false });
+
+        navItems.forEach((item, index) => {
+            item.addEventListener('click', () => {
+                if (bootActive) return;
+                if (isTransitioning || index === currentIndex) return;
+                isTransitioning = true;
+                triggerGlitchTransition(() => {
+                    currentIndex = index;
+                    scrollContainer.scrollTo({ top: sections[currentIndex].offsetTop, behavior: 'auto' });
+                    updateNav();
+                });
+            });
+        });
+
+        function updateNav() {
+            navItems.forEach((nav, index) => {
+                if (index === currentIndex) nav.classList.add('active');
+                else nav.classList.remove('active');
+            });
+
+            const danmakuLayer = document.getElementById('danmaku-layer');
+            if (danmakuLayer) {
+                if (currentIndex === 1 || currentIndex === 3) {
+                    danmakuLayer.classList.add('hidden');
+                } else {
+                    danmakuLayer.classList.remove('hidden');
+                }
+            }
+
+            if (currentIndex !== 3) {
+                if (!gameMusic.paused) gameMusic.pause();
+                if (bgMusicWasPlayingBeforeGame) {
+                    bgMusic.play().catch(()=>{});
+                    bgMusicWasPlayingBeforeGame = false; 
+                }
+            }
+
+            if (currentIndex === 1) setTimeout(gatherParticlesToCenter, 50);
+
+            if (currentIndex === 3) startSlowEdgeParticles();
+            else stopSlowEdgeParticles();
+        }
+
+        function triggerGlitchTransition(callback) {
+            transitionGlitch.innerHTML = '';
+            transitionGlitch.classList.remove('active');
+            void transitionGlitch.offsetWidth;
+            for (let i = 0; i < 20; i++) {
+                const block = document.createElement('div');
+                block.classList.add('glitch-block');
+                block.style.top = Math.random() * 100 + '%';
+                block.style.background = Math.random() > 0.5 ? 'var(--neon-cyan)' : 'var(--neon-pink)';
+                transitionGlitch.appendChild(block);
+            }
+            transitionGlitch.classList.add('active');
+            setTimeout(() => { callback(); }, 400);
+            setTimeout(() => { isTransitioning = false; }, 1000);
+        }
+
+        // ===================== 7. 登录逻辑 =====================
+        const USERS = [
+            { username: 'kuangtu', password: '123456', name: '狂徒忆梦' },
+            { username: 'dazhuang', password: '123456', name: '大壮' },
+            { username: 'huohua', password: '123456', name: '快乐的火花' },
+            { username: 'lxuxl', password: '123456', name: 'lxuxl' },
+            { username: 'fury', password: '123456', name: 'fury' },
+            { username: 'didi', password: '123456', name: '蒂蒂' },
+            { username: 'yun', password: '123456', name: '云' }
+        ];
+        const loginBtn = document.getElementById('login-btn');
+        const loginModal = document.getElementById('login-modal');
+        const submitBtn = document.getElementById('login-submit-btn');
+
+        loginBtn.addEventListener('click', (e) => { e.stopPropagation(); loginModal.classList.add('active'); });
+        document.getElementById('modal-close').addEventListener('click', () => { loginModal.classList.remove('active'); });
+        loginModal.addEventListener('click', (e) => { if (e.target === loginModal) loginModal.classList.remove('active'); });
+
+        submitBtn.addEventListener('click', () => {
+            const inputUser = document.getElementById('login-username').value.trim();
+            const inputPass = document.getElementById('login-password').value.trim();
+            const matchedUser = USERS.find(u => u.username === inputUser && u.password === inputPass);
+
+            if (matchedUser) {
+                alert('ACCESS GRANTED. 欢迎回到江湖，' + matchedUser.name + '！');
+                loginModal.classList.remove('active');
+                loginBtn.innerHTML = '<span>' + matchedUser.name + '</span>';
+                loginBtn.style.color = '#fcee0a'; loginBtn.style.borderColor = '#fcee0a'; loginBtn.style.boxShadow = '0 0 20px #fcee0a';
+                document.getElementById('login-username').value = '';
+                document.getElementById('login-password').value = '';
+            } else {
+                alert('ACCESS DENIED. 江湖名号或通关密语错误！');
+                document.getElementById('login-password').value = '';
+            }
+        });
+        document.getElementById('login-username').addEventListener('keypress', (e) => { if (e.key === 'Enter') submitBtn.click(); });
+        document.getElementById('login-password').addEventListener('keypress', (e) => { if (e.key === 'Enter') submitBtn.click(); });
+
+        // ===================== 8. 视频与背景音乐智能联动 =====================
+        const promoVideo = document.querySelector('.promo-video-container video');
+        let wasMusicPlayingBeforeVideo = false;
+
+        if (promoVideo) {
+            promoVideo.addEventListener('play', () => {
+                wasMusicPlayingBeforeVideo = isPlaying;
+                if (isPlaying) { bgMusic.pause(); sessionStorage.setItem('musicIsPlaying', 'true'); }
+                if (!gameMusic.paused) gameMusic.pause();
+            });
+            promoVideo.addEventListener('pause', () => {
+                if (wasMusicPlayingBeforeVideo) bgMusic.play().then(() => updateMusicUI(true)).catch(() => {});
+            });
+            promoVideo.addEventListener('ended', () => {
+                if (wasMusicPlayingBeforeVideo) {
+                    bgMusic.play().then(() => updateMusicUI(true)).catch(() => {});
+                    wasMusicPlayingBeforeVideo = false;
+                }
+            });
+        }
+
+        // ===================== 9. 赛博长方形展开 + 边框粒子爆发 =====================
+        function switchMorePanel(e, index) {
+            const targetPanel = document.getElementById(['panel-video', 'panel-photos', 'panel-game'][index]);
+            if (targetPanel.classList.contains('active') && !e.target.closest('.panel-title')) return;
+
+            const panels = document.querySelectorAll('.split-panel');
+            panels.forEach((p, i) => {
+                if (i === index) p.classList.add('active');
+                else p.classList.remove('active');
+            });
+
+            setTimeout(() => { createEdgeBurst(targetPanel.getBoundingClientRect()); }, 50);
+            
+            if (index === 2) {
+                bgMusicWasPlayingBeforeGame = !bgMusic.paused; 
+                if (!bgMusic.paused) bgMusic.pause();
+                if (promoVideo && !promoVideo.paused) promoVideo.pause();
+                
+                gameMusic.play().catch(()=>{});
+                initGame();
+            } else {
+                if (!gameMusic.paused) gameMusic.pause();
+                if (bgMusicWasPlayingBeforeGame) {
+                    bgMusic.play().catch(()=>{});
+                }
+            }
+        }
+
+        function createEdgeBurst(rect) {
+            const particleCount = 60;
+            const colors = ['#00f0ff', '#ff00ff', '#fcee0a', '#ffffff'];
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('cyber-edge-particle');
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.backgroundColor = color;
+                particle.style.boxShadow = `0 0 15px ${color}`;
+                const size = Math.random() * 6 + 4;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.borderRadius = Math.random() > 0.5 ? '0' : '50%';
+
+                const edge = Math.floor(Math.random() * 4);
+                let startX, startY, tx, ty;
+                const speed = Math.random() * 150 + 50;
+                if (edge === 0) { startX = rect.left + Math.random() * rect.width; startY = rect.top; tx = (Math.random() - 0.5) * 100; ty = -speed; }
+                else if (edge === 1) { startX = rect.left + Math.random() * rect.width; startY = rect.bottom; tx = (Math.random() - 0.5) * 100; ty = speed; }
+                else if (edge === 2) { startX = rect.left; startY = rect.top + Math.random() * rect.height; tx = -speed; ty = (Math.random() - 0.5) * 100; }
+                else { startX = rect.right; startY = rect.top + Math.random() * rect.height; tx = speed; ty = (Math.random() - 0.5) * 100; }
+
+                particle.style.left = startX + 'px';
+                particle.style.top = startY + 'px';
+                particle.style.setProperty('--tx', tx + 'px');
+                particle.style.setProperty('--ty', ty + 'px');
+                document.body.appendChild(particle);
+                setTimeout(() => { particle.remove(); }, 1000);
+            }
+        }
+
+        let floatParticleTimer = null;
+        function startSlowEdgeParticles() {
+            if (floatParticleTimer) return;
+            floatParticleTimer = setInterval(() => {
+                const activePanel = document.querySelector('.split-panel.active');
+                if (!activePanel) return;
+                const rect = activePanel.getBoundingClientRect();
+
+                for (let i = 0; i < 3; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('cyber-edge-float');
+                    const color = ['#00f0ff', '#ff00ff', '#fcee0a'][Math.floor(Math.random() * 3)];
+                    particle.style.backgroundColor = color;
+                    particle.style.boxShadow = `0 0 12px ${color}`;
+                    const size = Math.random() * 4 + 2;
+                    particle.style.width = size + 'px';
+                    particle.style.height = size + 'px';
+                    particle.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+
+                    const edge = Math.floor(Math.random() * 4);
+                    let startX, startY, tx, ty;
+                    const distance = Math.random() * 100 + 50;
+
+                    if (edge === 0) { startX = rect.left + Math.random() * rect.width; startY = rect.top; tx = (Math.random() - 0.5) * 60; ty = -distance; }
+                    else if (edge === 1) { startX = rect.left + Math.random() * rect.width; startY = rect.bottom; tx = (Math.random() - 0.5) * 60; ty = distance; }
+                    else if (edge === 2) { startX = rect.left; startY = rect.top + Math.random() * rect.height; tx = -distance; ty = (Math.random() - 0.5) * 60; }
+                    else { startX = rect.right; startY = rect.top + Math.random() * rect.height; tx = distance; ty = (Math.random() - 0.5) * 60; }
+
+                    particle.style.left = startX + 'px';
+                    particle.style.top = startY + 'px';
+                    particle.style.setProperty('--tx', tx + 'px');
+                    particle.style.setProperty('--ty', ty + 'px');
+                    document.body.appendChild(particle);
+                    setTimeout(() => { particle.remove(); }, 4000);
+                }
+            }, 80);
+        }
+        function stopSlowEdgeParticles() {
+            if (floatParticleTimer) {
+                clearInterval(floatParticleTimer);
+                floatParticleTimer = null;
+            }
+        }
+
+        // ===================== 10. 翻翻乐游戏逻辑 =====================
+        const gameGrid = document.getElementById('game-grid');
+        const movesDisplay = document.getElementById('game-moves');
+        const matchesDisplay = document.getElementById('game-matches');
+        const emojis = ['🐱', '🐶', '🦊', '🐻', '🐼', '🐨'];
+
+        let hasFlippedCard = false, lockBoard = false;
+        let firstCard, secondCard;
+        let moves = 0, matches = 0;
+
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        function initGame() {
+            gameGrid.innerHTML = '';
+            moves = 0; matches = 0;
+            movesDisplay.textContent = moves;
+            matchesDisplay.textContent = matches;
+            hasFlippedCard = false; lockBoard = false;
+
+            let gameCards = shuffle([...emojis, ...emojis]);
+            gameCards.forEach(emoji => {
+                const card = document.createElement('div');
+                card.classList.add('memory-card');
+                card.dataset.emoji = emoji;
+                card.innerHTML = `
+                    <div class="memory-card-inner">
+                        <div class="memory-card-back"></div>
+                        <div class="memory-card-front"><span>${emoji}</span></div>
+                    </div>
+                `;
+                card.addEventListener('click', flipCard);
+                gameGrid.appendChild(card);
+            });
+        }
+
+        function flipCard(e) {
+            e.stopPropagation();
+            if (lockBoard || this === firstCard) return;
+            this.classList.add('flipped');
+
+            if (!hasFlippedCard) {
+                hasFlippedCard = true;
+                firstCard = this;
+                return;
+            }
+            secondCard = this;
+            moves++;
+            movesDisplay.textContent = moves;
+            checkForMatch();
+        }
+
+        function checkForMatch() {
+            let isMatch = firstCard.dataset.emoji === secondCard.dataset.emoji;
+            if (isMatch) disableCards(); else unflipCards();
+        }
+
+        function disableCards() {
+            firstCard.classList.add('matched'); secondCard.classList.add('matched');
+            firstCard.removeEventListener('click', flipCard); secondCard.removeEventListener('click', flipCard);
+            matches++; matchesDisplay.textContent = matches;
+            resetBoard();
+            if (matches === emojis.length) setTimeout(() => { alert(`MATCH COMPLETE! 你用了 ${moves} 步。`); }, 600);
+        }
+
+        function unflipCards() {
+            lockBoard = true;
+            setTimeout(() => {
+                firstCard.classList.remove('flipped'); secondCard.classList.remove('flipped');
+                resetBoard();
+            }, 1000);
+        }
+
+        function resetBoard() {
+            [hasFlippedCard, lockBoard] = [false, false];
+            [firstCard, secondCard] = [null, null];
+        }
+
+        // ===================== 11. 团队标志绘制 =====================
+        function drawLogo(ctx2d, W, H) {
+            ctx2d.clearRect(0, 0, W, H);
+            const cx = W / 2;
+            const cy = H / 2;
+            const scale = Math.min(W / 430, H / 600);
+
+            ctx2d.save();
+            ctx2d.translate(cx, cy - 90 * scale);
+            ctx2d.scale(scale, scale);
+
+            ctx2d.beginPath();
+            ctx2d.moveTo(0, -180);
+            ctx2d.lineTo(200, -80);
+            ctx2d.lineTo(200, 60);
+            ctx2d.bezierCurveTo(200, 200, 100, 260, 0, 280);
+            ctx2d.bezierCurveTo(-100, 260, -200, 200, -200, 60);
+            ctx2d.lineTo(-200, -80);
+            ctx2d.closePath();
+
+            ctx2d.lineWidth = 16;
+            ctx2d.strokeStyle = '#3a3a3a';
+            ctx2d.stroke();
+            ctx2d.lineWidth = 6;
+            ctx2d.strokeStyle = '#7a7a7a';
+            ctx2d.stroke();
+
+            const shieldCY = 50;
+            const gradient = ctx2d.createLinearGradient(-120, 0, 120, 0);
+            gradient.addColorStop(0, '#ff0033');
+            gradient.addColorStop(0.2, '#ff8800');
+            gradient.addColorStop(0.4, '#ffff00');
+            gradient.addColorStop(0.6, '#00ff66');
+            gradient.addColorStop(0.8, '#00aaff');
+            gradient.addColorStop(1, '#aa00ff');
+
+            ctx2d.beginPath();
+            ctx2d.arc(0, shieldCY, 120, Math.PI, 0);
+            ctx2d.lineWidth = 24;
+            ctx2d.strokeStyle = gradient;
+            ctx2d.stroke();
+
+            ctx2d.beginPath();
+            ctx2d.moveTo(0, shieldCY - 120);
+            ctx2d.lineTo(0, shieldCY - 40);
+            ctx2d.moveTo(0, shieldCY + 40);
+            ctx2d.lineTo(0, shieldCY + 120);
+            ctx2d.moveTo(-120, shieldCY);
+            ctx2d.lineTo(-40, shieldCY);
+            ctx2d.moveTo(40, shieldCY);
+            ctx2d.lineTo(120, shieldCY);
+            ctx2d.arc(0, shieldCY, 35, 0, Math.PI * 2);
+
+            ctx2d.lineWidth = 6;
+            ctx2d.strokeStyle = '#555555';
+            ctx2d.stroke();
+
+            ctx2d.fillStyle = '#cccccc';
+            ctx2d.font = 'bold 80px "Orbitron", Arial, sans-serif';
+            ctx2d.textAlign = 'center';
+            ctx2d.textBaseline = 'middle';
+            ctx2d.fillText('sixG', 0, 320);
+
+            ctx2d.restore();
+        }
+
+        // ===================== 12. 粒子队标（RECORD 页面） =====================
+        const canvas = document.getElementById('logo-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let mouse = { x: -9999, y: -9999 };
+
+        function initParticles() {
+            canvas.width = canvas.clientWidth || 600;
+            canvas.height = canvas.clientHeight || 600;
+
+            const offCanvas = document.createElement('canvas');
+            offCanvas.width = canvas.width;
+            offCanvas.height = canvas.height;
+            const oCtx = offCanvas.getContext('2d', { willReadFrequently: true });
+            drawLogo(oCtx, offCanvas.width, offCanvas.height);
+
+            extractParticles(offCanvas);
+        }
+
+        function extractParticles(offCanvas) {
+            const oCtx = offCanvas.getContext('2d', { willReadFrequently: true });
+            const imgData = oCtx.getImageData(0, 0, offCanvas.width, offCanvas.height).data;
+
+            particles = [];
+            const gap = 4;
+
+            for (let y = 0; y < offCanvas.height; y += gap) {
+                for (let x = 0; x < offCanvas.width; x += gap) {
+                    const index = (y * offCanvas.width + x) * 4;
+                    const r = imgData[index];
+                    const g = imgData[index + 1];
+                    const b = imgData[index + 2];
+                    const a = imgData[index + 3];
+
+                    if (a > 128) {
+                        particles.push({
+                            x: x, y: y,
+                            originX: x, originY: y,
+                            vx: 0, vy: 0,
+                            color: `rgb(${r}, ${g}, ${b})`,
+                            size: Math.random() * 2.5 + 2.5
+                        });
+                    }
+                }
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(p => {
+                let dx = mouse.x - p.x;
+                let dy = mouse.y - p.y;
+                let dist = Math.sqrt(dx * dx + dy * dy);
+                let maxDist = 30;
+
+                if (dist < maxDist && dist > 0) {
+                    let force = (maxDist - dist) / maxDist;
+                    let directionX = dx / dist;
+                    let directionY = dy / dist;
+
+                    let scatterX = (Math.random() - 0.5) * 3;
+                    let scatterY = (Math.random() - 0.5) * 3;
+
+                    p.vx -= directionX * force * 15 + scatterX;
+                    p.vy -= directionY * force * 15 + scatterY;
+                }
+
+                let idleJitterX = (Math.random() - 0.5) * 0.3;
+                let idleJitterY = (Math.random() - 0.5) * 0.3;
+
+                p.vx += (p.originX - p.x) * 0.05 + idleJitterX;
+                p.vy += (p.originY - p.y) * 0.05 + idleJitterY;
+
+                p.vx *= 0.85;
+                p.vy *= 0.85;
+
+                p.x += p.vx;
+                p.y += p.vy;
+
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+            });
+
+            requestAnimationFrame(animateParticles);
+        }
+
+        function gatherParticlesToCenter() {
+            if (!particles || particles.length === 0) return;
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const maxDist = Math.max(canvas.width, canvas.height);
+
+            particles.forEach(p => {
+                const angle = Math.random() * Math.PI * 2;
+                const dist = maxDist * 0.6 + Math.random() * 300;
+
+                p.x = cx + Math.cos(angle) * dist;
+                p.y = cy + Math.sin(angle) * dist;
+
+                p.vx = (p.originX - p.x) * 0.08;
+                p.vy = (p.originY - p.y) * 0.08;
+            });
+        }
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+        });
+        canvas.addEventListener('mouseleave', () => {
+            mouse.x = -9999;
+            mouse.y = -9999;
+        });
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                initParticles();
+                if (!window.particleAnimationStarted) {
+                    animateParticles();
+                    window.particleAnimationStarted = true;
+                }
+            }, 500);
+        });
+
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                initParticles();
+            }, 300);
+        });
+
+        // ===================== 13. RECORD 面板切换 =====================
+        const storyTerminal = document.getElementById('story-terminal');
+        const canvasContainer = document.getElementById('canvas-container');
+        const recordDetailPanel = document.getElementById('record-detail-panel');
+        const recDetailTitle = document.getElementById('rec-detail-title');
+        const recDetailDesc = document.getElementById('rec-detail-desc');
+        const recDetailGallery = document.getElementById('rec-detail-gallery');
+        const recordItems = document.querySelectorAll('.record-item');
+
+        let currentRecordPanel = 'canvas';
+
+        function showRecordPanel(panel) {
+            currentRecordPanel = panel;
+
+            if (panel === 'story') {
+                storyTerminal.style.display = 'flex';
+                void storyTerminal.offsetWidth;
+                storyTerminal.style.opacity = '1';
+            } else {
+                storyTerminal.style.opacity = '0';
+                setTimeout(() => {
+                    if (currentRecordPanel !== 'story') storyTerminal.style.display = 'none';
+                }, 400);
+            }
+
+            if (panel === 'detail') {
+                recordDetailPanel.style.display = 'flex';
+                void recordDetailPanel.offsetWidth;
+                recordDetailPanel.style.opacity = '1';
+            } else {
+                recordDetailPanel.style.opacity = '0';
+                setTimeout(() => {
+                    if (currentRecordPanel !== 'detail') recordDetailPanel.style.display = 'none';
+                }, 400);
+            }
+
+            const showCanvas = panel === 'canvas';
+            canvasContainer.style.opacity = showCanvas ? '1' : '0';
+            canvasContainer.style.pointerEvents = showCanvas ? 'auto' : 'none';
+        }
+
+        function renderRecordDetail(data) {
+            if (!data) return;
+
+            recDetailTitle.textContent = data.title || '';
+
+            recDetailDesc.innerHTML = '';
+            const paragraphs = (data.desc || '').split(/\n\s*\n/).filter(t => t.trim() !== '');
+            paragraphs.forEach(text => {
+                const p = document.createElement('p');
+                p.textContent = text.trim();
+                recDetailDesc.appendChild(p);
+            });
+
+            recDetailGallery.innerHTML = '';
+            (data.images || []).forEach(img => {
+                const card = document.createElement('div');
+                card.className = 'rec-photo-card';
+
+                const imgEl = document.createElement('img');
+                imgEl.src = img.src || '';
+                imgEl.alt = img.caption || '';
+
+                const capEl = document.createElement('div');
+                capEl.className = 'rec-photo-caption';
+                capEl.textContent = img.caption || '';
+
+                card.appendChild(imgEl);
+                card.appendChild(capEl);
+
+                card.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    if (img.src) openLightbox(img.src);
+                });
+
+                recDetailGallery.appendChild(card);
+            });
+        }
+
+        function toggleRecord(e, recordId) {
+            const clickedItem = e.currentTarget;
+            const wasActive = clickedItem.classList.contains('active');
+
+            recordItems.forEach(item => item.classList.remove('active'));
+
+            if (wasActive) {
+                showRecordPanel('canvas');
+                return;
+            }
+
+            clickedItem.classList.add('active');
+
+            if (recordId === 'rec-01') {
+                showRecordPanel('story');
+            } else {
+                renderRecordDetail(RECORD_DATA[recordId]);
+                showRecordPanel('detail');
+            }
+        }
+
+        // ===================== 初始化 =====================
+        updateNav();
+
+        // ===================== 14. 启动动画 =====================
+        (function bootSequence() {
+            const bootScreen = document.getElementById('boot-screen');
+            const bootCanvas = document.getElementById('boot-canvas');
+            const bctx = bootCanvas.getContext('2d');
+            const flashEl = document.getElementById('boot-flash');
+
+            let bootParticles = [];
+            let edgePixels = [];
+            let shockParticles = [];
+            let ambientParticles = [];
+            let fireworkParticles = [];
+            let enterParticles = [];
+
+            let bootStartTime = 0;
+            let stampStartTime = 0;
+            let explosionStartTime = 0;
+            let enterStartTime = 0;
+            let lastFireworkTime = 0;
+            let bootRafId = null;
+            let sealCenter = { cx: 0, cy: 0 };
+            let sealSize = 0;
+            let crosshairCenter = { x: 0, y: 0 };
+            let crosshairRadius = 30;
+
+            let mouseX = -9999, mouseY = -9999, mouseActive = false;
+
+            let stamped = false;
+            let exploded = false;
+            let enterGathering = false;
+            let enterReady = false;
+
+            const T_STAMP = 2600;
+            const BLESSINGS = [
+                '一起吃早午晚饭，一起看春夏秋冬',
+                '今天也是快乐的火花',
+                'lxuxl是一个颜文字呀才不是什么奇怪含义呢',
+                '神也无法读懂神的过去',
+                '怀民亦未寝（元丰六年十月十二日夜）',
+                '一生襟抱未曾开',
+                '՞˶･֊･˶՞',
+                '人生若只如初见，何事秋风悲画扇'
+            ];
+
+            function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+            function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+            function dist2D(dx, dy) { return Math.sqrt(dx * dx + dy * dy); }
+
+            function setup() {
+                bootCanvas.width = window.innerWidth;
+                bootCanvas.height = window.innerHeight;
+
+                sealSize = Math.max(320, Math.min(600, Math.min(window.innerWidth, window.innerHeight) * 0.7));
+                sealCenter = { cx: bootCanvas.width / 2, cy: bootCanvas.height / 2 };
+
+                const logoScale = Math.min(sealSize / 430, sealSize / 600);
+                crosshairCenter = {
+                    x: sealCenter.cx,
+                    y: sealCenter.cy + (-90 + 50) * logoScale
+                };
+                crosshairRadius = Math.max(28, 35 * logoScale * 1.4);
+
+                const off = document.createElement('canvas');
+                off.width = sealSize;
+                off.height = sealSize;
+                const octx = off.getContext('2d', { willReadFrequently: true });
+                drawLogo(octx, sealSize, sealSize);
+                const data = octx.getImageData(0, 0, sealSize, sealSize).data;
+
+                const gap = sealSize < 400 ? 4 : 5;
+                const halfW = bootCanvas.width / 2;
+                const halfH = bootCanvas.height / 2;
+                const spawnRadius = Math.hypot(halfW, halfH) + 200;
+
+                const alphaAt = (x, y) => {
+                    if (x < 0 || y < 0 || x >= sealSize || y >= sealSize) return 0;
+                    return data[(y * sealSize + x) * 4 + 3];
+                };
+
+                bootParticles = [];
+                edgePixels = [];
+
+                for (let y = 0; y < sealSize; y += gap) {
+                    for (let x = 0; x < sealSize; x += gap) {
+                        const idx = (y * sealSize + x) * 4;
+                        if (data[idx + 3] > 128) {
+                            const tx = sealCenter.cx + (x - sealSize / 2);
+                            const ty = sealCenter.cy + (y - sealSize / 2);
+
+                            const angle = Math.random() * Math.PI * 2;
+                            const dist = spawnRadius * (0.55 + Math.random() * 0.6);
+
+                            bootParticles.push({
+                                sx: halfW + Math.cos(angle) * dist,
+                                sy: halfH + Math.sin(angle) * dist,
+                                x: 0, y: 0,
+                                originX: tx, originY: ty,
+                                vx: 0, vy: 0,
+                                size: gap * (0.7 + Math.random() * 0.5),
+                                color: `rgb(${data[idx]}, ${data[idx+1]}, ${data[idx+2]})`,
+                                delay: Math.random() * 500
+                            });
+
+                            const aL = alphaAt(x - gap, y);
+                            const aR = alphaAt(x + gap, y);
+                            const aU = alphaAt(x, y - gap);
+                            const aD = alphaAt(x, y + gap);
+                            if (aL <= 128 || aR <= 128 || aU <= 128 || aD <= 128) {
+                                edgePixels.push({
+                                    x: tx, y: ty,
+                                    color: `rgb(${data[idx]}, ${data[idx+1]}, ${data[idx+2]})`
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            function triggerStamp() {
+                stamped = true;
+                stampStartTime = performance.now();
+
+                bootScreen.classList.add('shaking');
+                setTimeout(() => bootScreen.classList.remove('shaking'), 600);
+
+                flashEl.classList.remove('flash');
+                void flashEl.offsetWidth;
+                flashEl.classList.add('flash');
+
+                for (const p of bootParticles) {
+                    const dx = p.originX - sealCenter.cx;
+                    const dy = p.originY - sealCenter.cy;
+                    const d = dist2D(dx, dy) || 1;
+                    const power = 22 + Math.random() * 26;
+                    p.vx += (dx / d) * power + (Math.random() - 0.5) * 12;
+                    p.vy += (dy / d) * power + (Math.random() - 0.5) * 12;
+                }
+
+                shockParticles = [];
+                for (const ep of edgePixels) {
+                    const count = Math.random() > 0.45 ? 3 : 2;
+                    for (let i = 0; i < count; i++) {
+                        const dx = ep.x - sealCenter.cx;
+                        const dy = ep.y - sealCenter.cy;
+                        const d = dist2D(dx, dy) || 1;
+                        const speed = 4 + Math.random() * 12;
+                        shockParticles.push({
+                            x: ep.x, y: ep.y,
+                            vx: (dx / d) * speed + (Math.random() - 0.5) * 5,
+                            vy: (dy / d) * speed + (Math.random() - 0.5) * 5,
+                            life: 1,
+                            decay: 0.009 + Math.random() * 0.012,
+                            size: 2 + Math.random() * 3.5,
+                            color: ep.color
+                        });
+                    }
+                }
+            }
+
+            function triggerExplosion() {
+                exploded = true;
+                explosionStartTime = performance.now();
+
+                bootScreen.classList.add('shaking');
+                setTimeout(() => bootScreen.classList.remove('shaking'), 400);
+
+                flashEl.classList.remove('flash');
+                void flashEl.offsetWidth;
+                flashEl.classList.add('flash');
+
+                for (const p of bootParticles) {
+                    const dx = p.x - crosshairCenter.x;
+                    const dy = p.y - crosshairCenter.y;
+                    const d = dist2D(dx, dy) || 1;
+                    const power = 42 + Math.random() * 55;
+                    p.vx = (dx / d) * power + (Math.random() - 0.5) * 26;
+                    p.vy = (dy / d) * power + (Math.random() - 0.5) * 26;
+                    p.size *= 1.35 + Math.random() * 1.15;
+                }
+
+                shockParticles = [];
+                ambientParticles = [];
+                fireworkParticles = [];
+            }
+
+            function spawnFirework() {
+                let x, y, tries = 0;
+                do {
+                    x = Math.random() * bootCanvas.width;
+                    y = Math.random() * bootCanvas.height;
+                    tries++;
+                } while (Math.hypot(x - sealCenter.cx, y - sealCenter.cy) < sealSize * 0.6 && tries < 20);
+
+                const count = 28 + Math.floor(Math.random() * 30);
+                const baseHue = Math.random() * 360;
+
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 1.5 + Math.random() * 4;
+                    fireworkParticles.push({
+                        x, y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        life: 1,
+                        decay: 0.007 + Math.random() * 0.01,
+                        size: 1.5 + Math.random() * 2.5,
+                        color: Math.random() > 0.35
+                            ? `hsl(${baseHue + (Math.random() - 0.5) * 50}, 100%, 60%)`
+                            : `hsl(${Math.random() * 360}, 100%, 65%)`
+                    });
+                }
+            }
+
+            function createEnterParticles() {
+                const off = document.createElement('canvas');
+                off.width = bootCanvas.width;
+                off.height = bootCanvas.height;
+                const octx = off.getContext('2d', { willReadFrequently: true });
+
+                const blessing = BLESSINGS[Math.floor(Math.random() * BLESSINGS.length)];
+
+                let fontSize = Math.min(bootCanvas.height * 0.22, bootCanvas.width / 5);
+                const maxWidth = bootCanvas.width * 0.85;
+                const buildFont = (fs) => `bold ${fs}px "Microsoft YaHei", "PingFang SC", "Arial Black", sans-serif`;
+                octx.font = buildFont(fontSize);
+
+                while (octx.measureText(blessing).width > maxWidth && fontSize > 14) {
+                    fontSize -= 2;
+                    octx.font = buildFont(fontSize);
+                }
+
+                octx.textAlign = 'center';
+                octx.textBaseline = 'middle';
+                octx.fillStyle = '#ffffff';
+                octx.fillText(blessing, bootCanvas.width / 2, bootCanvas.height / 2);
+
+                const data = octx.getImageData(0, 0, off.width, off.height).data;
+                const gap = Math.max(3, Math.round(fontSize / 16));
+                const result = [];
+                const colors = ['#00f0ff', '#ff00ff', '#fcee0a', '#ffffff', '#00ff66'];
+
+                const halfW = bootCanvas.width / 2;
+                const halfH = bootCanvas.height / 2;
+                const spawnDist = Math.hypot(halfW, halfH) + 120;
+
+                for (let y = 0; y < off.height; y += gap) {
+                    for (let x = 0; x < off.width; x += gap) {
+                        const idx = (y * off.width + x) * 4;
+                        if (data[idx + 3] > 128) {
+                            const angle = Math.random() * Math.PI * 2;
+                            const dist = spawnDist * (0.7 + Math.random() * 0.5);
+                            result.push({
+                                sx: halfW + Math.cos(angle) * dist,
+                                sy: halfH + Math.sin(angle) * dist,
+                                tx: x,
+                                ty: y,
+                                x: 0, y: 0,
+                                size: gap * (0.7 + Math.random() * 0.5),
+                                color: colors[Math.floor(Math.random() * colors.length)],
+                                delay: Math.random() * 400
+                            });
+                        }
+                    }
+                }
+                return result;
+            }
+
+            function goToHome() {
+                if (!bootActive) return;
+                bootScreen.classList.add('hide');
+                bootActive = false;
+
+                currentIndex = 0;
+                scrollContainer.scrollTo({ top: 0, behavior: 'auto' });
+                updateNav();
+
+                setTimeout(() => {
+                    bootScreen.style.display = 'none';
+                    if (bootRafId) {
+                        cancelAnimationFrame(bootRafId);
+                        bootRafId = null;
+                    }
+                }, 950);
+
+                bgMusic.play().then(() => {
+                    isPlaying = true;
+                    updateMusicUI(true);
+                }).catch(() => {
+                    isPlaying = false;
+                    updateMusicUI(false);
+                });
+            }
+
+            function loop(now) {
+                if (!bootStartTime) bootStartTime = now;
+                const t = now - bootStartTime;
+
+                bctx.clearRect(0, 0, bootCanvas.width, bootCanvas.height);
+
+                let globalScale = 1;
+                if (stamped && stampStartTime && !exploded) {
+                    const st = now - stampStartTime;
+                    if (st < 420) {
+                        const p = Math.min(1, st / 420);
+                        const c1 = 1.70158, c3 = c1 + 1;
+                        const easeOutBack = 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2);
+                        globalScale = 1 + (1 - easeOutBack) * 0.35;
+                    }
+                }
+
+                if (!stamped) {
+                    bctx.save();
+                    bctx.translate(sealCenter.cx, sealCenter.cy);
+                    bctx.scale(globalScale, globalScale);
+                    bctx.translate(-sealCenter.cx, -sealCenter.cy);
+
+                    const breathe = 0.88 + Math.sin(t * 0.012) * 0.12;
+                    const gatherDur = 2200 * 0.7;
+
+                    for (const p of bootParticles) {
+                        const lt = clamp((t - p.delay) / gatherDur, 0, 1);
+                        const e = easeOutCubic(lt);
+                        p.x = p.sx + (p.originX - p.sx) * e;
+                        p.y = p.sy + (p.originY - p.sy) * e;
+
+                        const alpha = Math.min(1, lt * 1.6);
+                        bctx.globalAlpha = alpha * (lt >= 1 ? breathe : 1);
+                        bctx.fillStyle = p.color;
+                        bctx.fillRect(p.x, p.y, p.size, p.size);
+                    }
+                    bctx.globalAlpha = 1;
+                    bctx.restore();
+
+                    if (t >= T_STAMP) triggerStamp();
+
+                } else if (!exploded) {
+                    bctx.save();
+                    bctx.translate(sealCenter.cx, sealCenter.cy);
+                    bctx.scale(globalScale, globalScale);
+                    bctx.translate(-sealCenter.cx, -sealCenter.cy);
+
+                    const breathe = 0.9 + Math.sin(t * 0.015) * 0.1;
+
+                    for (const p of bootParticles) {
+                        if (mouseActive) {
+                            const dx = p.x - mouseX;
+                            const dy = p.y - mouseY;
+                            const dist = dist2D(dx, dy);
+                            const maxDist = 30;
+                            if (dist < maxDist && dist > 0.5) {
+                                const force = (maxDist - dist) / maxDist;
+                                p.vx += (dx / dist) * force * 5;
+                                p.vy += (dy / dist) * force * 5;
+                            }
+                        }
+                        p.vx += (p.originX - p.x) * 0.06;
+                        p.vy += (p.originY - p.y) * 0.06;
+                        p.vx *= 0.84;
+                        p.vy *= 0.84;
+                        p.x += p.vx;
+                        p.y += p.vy;
+
+                        bctx.globalAlpha = breathe;
+                        bctx.fillStyle = p.color;
+                        bctx.fillRect(p.x, p.y, p.size, p.size);
+                    }
+                    bctx.globalAlpha = 1;
+
+                    for (let i = shockParticles.length - 1; i >= 0; i--) {
+                        const sp = shockParticles[i];
+                        sp.x += sp.vx;
+                        sp.y += sp.vy;
+                        sp.vx *= 0.955;
+                        sp.vy *= 0.955;
+                        sp.life -= sp.decay;
+                        if (sp.life <= 0) { shockParticles.splice(i, 1); continue; }
+                        bctx.globalAlpha = Math.max(0, sp.life);
+                        bctx.fillStyle = sp.color;
+                        bctx.fillRect(sp.x, sp.y, sp.size, sp.size);
+                    }
+                    bctx.globalAlpha = 1;
+
+                    if (edgePixels.length > 0 && Math.random() < 0.12) {
+                        const ep = edgePixels[Math.floor(Math.random() * edgePixels.length)];
+                        const angle = Math.random() * Math.PI * 2;
+                        const speed = 0.25 + Math.random() * 0.8;
+                        ambientParticles.push({
+                            x: ep.x, y: ep.y,
+                            vx: Math.cos(angle) * speed,
+                            vy: Math.sin(angle) * speed,
+                            life: 1,
+                            decay: 0.004 + Math.random() * 0.006,
+                            size: 1.5 + Math.random() * 2,
+                            color: ep.color
+                        });
+                    }
+                    for (let i = ambientParticles.length - 1; i >= 0; i--) {
+                        const ap = ambientParticles[i];
+                        ap.x += ap.vx;
+                        ap.y += ap.vy;
+                        ap.life -= ap.decay;
+                        if (ap.life <= 0) { ambientParticles.splice(i, 1); continue; }
+                        bctx.globalAlpha = ap.life * 0.9;
+                        bctx.fillStyle = ap.color;
+                        bctx.fillRect(ap.x, ap.y, ap.size, ap.size);
+                    }
+                    bctx.globalAlpha = 1;
+
+                    bctx.restore();
+
+                } else if (!enterGathering) {
+                    const et = now - explosionStartTime;
+                    const fade = Math.max(0, 1 - et / 1000);
+
+                    for (const p of bootParticles) {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vx *= 0.988;
+                        p.vy *= 0.988;
+                        p.size *= 0.999;
+
+                        bctx.globalAlpha = fade;
+                        bctx.fillStyle = p.color;
+                        bctx.fillRect(p.x, p.y, p.size, p.size);
+                    }
+                    bctx.globalAlpha = 1;
+
+                    if (et >= 1000) {
+                        enterGathering = true;
+                        enterStartTime = now;
+                        enterParticles = createEnterParticles();
+                        shockParticles = [];
+                        ambientParticles = [];
+                        lastFireworkTime = now;
+                    }
+
+                } else {
+                    const et = now - enterStartTime;
+                    const dur = 1400;
+                    const breathe = 0.85 + Math.sin(et * 0.008) * 0.15;
+
+                    for (const p of enterParticles) {
+                        const lt = clamp((et - p.delay) / dur, 0, 1);
+                        const e = easeOutCubic(lt);
+                        p.x = p.sx + (p.tx - p.sx) * e;
+                        p.y = p.sy + (p.ty - p.sy) * e;
+
+                        bctx.globalAlpha = Math.min(1, lt * 1.8) * breathe;
+                        bctx.fillStyle = p.color;
+                        bctx.fillRect(p.x, p.y, p.size, p.size);
+                    }
+                    bctx.globalAlpha = 1;
+
+                    if (now > lastFireworkTime) {
+                        spawnFirework();
+                        lastFireworkTime = now + 700 + Math.random() * 900;
+                    }
+                    for (let i = fireworkParticles.length - 1; i >= 0; i--) {
+                        const fp = fireworkParticles[i];
+                        fp.x += fp.vx;
+                        fp.y += fp.vy;
+                        fp.vy += 0.02;
+                        fp.vx *= 0.98;
+                        fp.vy *= 0.98;
+                        fp.life -= fp.decay;
+                        if (fp.life <= 0) { fireworkParticles.splice(i, 1); continue; }
+                        bctx.globalAlpha = fp.life;
+                        bctx.fillStyle = fp.color;
+                        bctx.fillRect(fp.x, fp.y, fp.size, fp.size);
+                    }
+                    bctx.globalAlpha = 1;
+
+                    if (!enterReady && et > dur + 500) {
+                        enterReady = true;
+                    }
+                }
+
+                bootRafId = requestAnimationFrame(loop);
+            }
+
+            bootScreen.addEventListener('click', (e) => {
+                if (exploded) {
+                    const et = performance.now() - explosionStartTime;
+                    if (et >= 1000) {
+                        goToHome();
+                    }
+                    return;
+                }
+
+                if (!stamped) return;
+
+                const dx = e.clientX - crosshairCenter.x;
+                const dy = e.clientY - crosshairCenter.y;
+                if (dist2D(dx, dy) <= crosshairRadius) {
+                    triggerExplosion();
+                } else {
+                    goToHome();
+                }
+            });
+
+            bootScreen.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                mouseActive = true;
+            });
+            bootScreen.addEventListener('mouseleave', () => {
+                mouseActive = false;
+            });
+
+            window.addEventListener('load', () => {
+                setup();
+                bootStartTime = 0;
+                bootRafId = requestAnimationFrame(loop);
+            });
+        })();
+
+        /* ===================== 15. 弹幕评论系统（已停用） =====================
+        (function initDanmaku() {
+            const SUPABASE_URL = 'https://wpwvvrflromejgeloiqf.supabase.co';
+            const SUPABASE_ANON_KEY = 'sb_publishable_JDhs0N4pY0-p8wBVfzlRcw_2dGLRAxe';
+            let supabaseClient = null;
+            try {
+                if (typeof supabase !== 'undefined') {
+                    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                }
+            } catch (e) {
+                console.warn('Supabase 初始化失败：', e);
+            }
+
+            const danmakuLayer = document.getElementById('danmaku-layer');
+            const trigger = document.getElementById('danmaku-trigger');
+            const modal = document.getElementById('danmaku-modal');
+            const nameInput = document.getElementById('danmaku-name');
+            const textInput = document.getElementById('danmaku-text');
+            const btnSend = document.getElementById('danmaku-send');
+            const btnCancel = document.getElementById('danmaku-cancel');
+
+            const historyBtn = document.getElementById('danmaku-list-btn');
+            const historyPanel = document.getElementById('danmaku-history-panel');
+            const historyCloseBtn = document.getElementById('history-close-btn');
+            const historyList = document.getElementById('history-list');
+
+            const DANMAKU_COLORS = [
+                '#00f0ff', '#ff00ff', '#fcee0a', '#ffffff',
+                '#00ff66', '#ff3366', '#b000ff', '#ff8800'
+            ];
+
+            const MAX_ACTIVE = 25;
+            let activeDanmaku = 0;
+
+            let danmakuHistory = [];
+
+            function spawnDanmaku(text, color) {
+                if (!danmakuLayer) return;
+                if (activeDanmaku >= MAX_ACTIVE) return;
+
+                const el = document.createElement('div');
+                el.className = 'danmaku-item';
+                el.textContent = text;
+                el.style.color = color || DANMAKU_COLORS[Math.floor(Math.random() * DANMAKU_COLORS.length)];
+                el.style.fontSize = (Math.random() * 0.5 + 1) + 'rem';
+                el.style.top = (Math.random() * 60 + 15) + '%';
+
+                el.style.left = '100vw';
+                danmakuLayer.appendChild(el);
+
+                const width = el.offsetWidth;
+                const duration = ((window.innerWidth + width) / (Math.random() * 50 + 110)).toFixed(2);
+
+                el.style.animation = `danmakuMove ${duration}s linear forwards`;
+                el.style.opacity = '0.92';
+
+                activeDanmaku++;
+                setTimeout(() => {
+                    el.remove();
+                    activeDanmaku = Math.max(0, activeDanmaku - 1);
+                }, parseFloat(duration) * 1000);
+            }
+
+            function addToHistory(name, text, time) {
+                danmakuHistory.push({ name, text, time });
+                renderHistory();
+            }
+
+            function renderHistory() {
+                if (!historyList) return;
+                historyList.innerHTML = '';
+                const sorted = [...danmakuHistory].sort((a, b) => new Date(b.time) - new Date(a.time));
+                
+                sorted.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'history-item';
+                    
+                    const timeStr = new Date(item.time).toLocaleTimeString();
+                    
+                    div.innerHTML = `
+                        <div><span class="h-name">${item.name}</span><span class="h-text">${item.text}</span></div>
+                        <span class="h-time">${timeStr}</span>
+                    `;
+                    historyList.appendChild(div);
+                });
+            }
+
+            let danmakuQueue = [];
+            let isQueueRunning = false;
+
+            function enqueueDanmaku(text, color, delay) {
+                danmakuQueue.push({ text, color, delay: delay || 0 });
+                if (!isQueueRunning) runQueue();
+            }
+
+            function runQueue() {
+                if (danmakuQueue.length === 0) {
+                    isQueueRunning = false;
+                    return;
+                }
+                isQueueRunning = true;
+                const item = danmakuQueue.shift();
+                setTimeout(() => {
+                    spawnDanmaku(item.text, item.color);
+                    runQueue();
+                }, item.delay);
+            }
+
+            async function loadAndShowComments() {
+                if (!supabaseClient) return;
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('comments')
+                        .select('name, text, created_at')
+                        .eq('op_id', 'global')
+                        .order('created_at', { ascending: true })
+                        .limit(50);
+
+                    if (error || !data) return;
+
+                    data.forEach((c, i) => {
+                        const displayText = `${c.name}：${c.text}`;
+                        const color = DANMAKU_COLORS[i % DANMAKU_COLORS.length];
+                        enqueueDanmaku(displayText, color, i === 0 ? 900 : 1300 + Math.random() * 1400);
+                        addToHistory(c.name, c.text, c.created_at);
+                    });
+                } catch (e) {
+                    console.warn('弹幕加载失败：', e);
+                }
+            }
+
+            function setupRealtimeSubscription() {
+                if (!supabaseClient) return;
+
+                supabaseClient
+                    .channel('comments-realtime')
+                    .on(
+                        'postgres_changes',
+                        {
+                            event: 'INSERT',
+                            schema: 'public',
+                            table: 'comments',
+                            filter: 'op_id=eq.global'
+                        },
+                        (payload) => {
+                            const newComment = payload.new;
+                            if (newComment) {
+                                const displayText = `${newComment.name}：${newComment.text}`;
+                                const randomColor = DANMAKU_COLORS[Math.floor(Math.random() * DANMAKU_COLORS.length)];
+                                spawnDanmaku(displayText, randomColor);
+                                addToHistory(newComment.name, newComment.text, newComment.created_at || new Date().toISOString());
+                            }
+                        }
+                    )
+                    .subscribe();
+            }
+
+            if (trigger) {
+                trigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    modal.classList.add('active');
+                    setTimeout(() => nameInput.focus(), 60);
+                });
+            }
+            if (btnCancel) {
+                btnCancel.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    modal.classList.remove('active');
+                });
+            }
+            if (modal) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) modal.classList.remove('active');
+                });
+            }
+
+            if (historyBtn) {
+                historyBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    historyPanel.classList.toggle('active');
+                    historyBtn.classList.toggle('active');
+                });
+            }
+            if (historyCloseBtn) {
+                historyCloseBtn.addEventListener('click', () => {
+                    historyPanel.classList.remove('active');
+                    historyBtn.classList.remove('active');
+                });
+            }
+
+            if (btnSend) {
+                btnSend.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const nameVal = nameInput.value.trim();
+                    const textVal = textInput.value.trim();
+
+                    if (!nameVal || !textVal) {
+                        alert('昵称和弹幕内容都不能为空哦~');
+                        return;
+                    }
+                    if (!supabaseClient) {
+                        alert('弹幕服务暂不可用，请稍后再试。');
+                        return;
+                    }
+
+                    btnSend.disabled = true;
+                    btnSend.textContent = '发送中...';
+
+                    try {
+                        const { error } = await supabaseClient
+                            .from('comments')
+                            .insert([{ op_id: 'global', name: nameVal, text: textVal }]);
+
+                        if (error) {
+                            alert('发送失败：' + error.message);
+                        } else {
+                            textInput.value = '';
+                            modal.classList.remove('active');
+                        }
+                    } catch (err) {
+                        alert('发送失败：' + err.message);
+                    } finally {
+                        btnSend.disabled = false;
+                        btnSend.textContent = '发送';
+                    }
+                });
+            }
+
+            const startDanmaku = () => {
+                const timer = setInterval(() => {
+                    if (typeof bootActive !== 'undefined' && bootActive === false) {
+                        clearInterval(timer);
+                        loadAndShowComments();
+                        setupRealtimeSubscription();
+                        setInterval(loadAndShowComments, 45000);
+                    }
+                }, 500);
+
+                setTimeout(() => {
+                    clearInterval(timer);
+                    loadAndShowComments();
+                    setupRealtimeSubscription();
+                    setInterval(loadAndShowComments, 45000);
+                }, 10000);
+            };
+            startDanmaku();
+
+            window.__spawnDanmaku = spawnDanmaku;
+        })();
+        ===================== 弹幕评论系统结束 ===================== */
+    </script>
+</body>
+</html>
